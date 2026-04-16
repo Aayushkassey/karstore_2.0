@@ -1,0 +1,37 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/add_product.css' %}">
+
+<div class="add-product-container">
+
+<h2>Add Product</h2>
+
+<form method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+
+<input type="text" name="name" placeholder="Product Name" required>
+
+<input type="number" name="price" placeholder="Price" required>
+
+<textarea name="description" placeholder="Description"></textarea>
+
+<select name="category" required>
+<option value="">Select Category</option>
+
+{% for category in categories %}
+<option value="{{ category.id }}">{{ category.name }}</option>
+{% endfor %}
+
+</select>
+
+<input type="file" name="image" required>
+
+<button type="submit">Add Product</button>
+
+</form>
+
+</div>
+
+{% endblock %}

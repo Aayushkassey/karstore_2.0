@@ -1,0 +1,33 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+<div class="dashboard-container">
+    <div class="dashboard-header" style="margin-bottom: 40px; text-align: center;">
+        <h1 style="font-size: 32px; font-weight: 700;">Seller Dashboard</h1>
+        <p style="color: #666;">Manage your store and inventory here.</p>
+    </div>
+
+    <div class="dashboard-cards" style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'home' %}" class="dashboard-card" style="background: white; padding: 40px; border-radius: 15px; width: 280px; text-align: center; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+            <div style="font-size: 40px; margin-bottom: 15px;">🏪</div>
+            <h3 style="color: #333;">Visit Store</h3>
+            <p style="color: #888; font-size: 14px;">Preview your public shop</p>
+        </a>
+
+        <a href="{% url 'add_product' %}" class="dashboard-card" style="background: white; padding: 40px; border-radius: 15px; width: 280px; text-align: center; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px dashed #f85606;">
+            <div style="font-size: 40px; margin-bottom: 15px;">➕</div>
+            <h3 style="color: #f85606;">Add Product</h3>
+            <p style="color: #888; font-size: 14px;">List a new item for sale</p>
+        </a>
+
+        <div class="dashboard-card" style="background: white; padding: 40px; border-radius: 15px; width: 280px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+            <div style="font-size: 40px; margin-bottom: 15px;">📦</div>
+            <h3 style="color: #333;">Total Products</h3>
+            <p style="color: #f85606; font-size: 36px; font-weight: 700; margin: 0;">{{ products.count }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

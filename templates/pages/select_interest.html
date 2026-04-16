@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Interests</title>
+<style>
+    .interest-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 30px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    h2 {
+        color: #333;
+        margin-bottom: 25px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .interests-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+        text-align: left;
+    }
+
+    .interest-item {
+        position: relative;
+        display: block;
+        padding: 12px;
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .interest-item:hover {
+        border-color: #007bff;
+        background: #f0f7ff;
+    }
+
+    .interest-item input {
+        margin-right: 10px;
+        transform: scale(1.2);
+    }
+
+    /* Checkbox click bhayepachhi ko style */
+    .interest-item input:checked + span {
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn-save {
+        padding: 12px 30px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .btn-save:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-skip {
+        padding: 12px 30px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+    }
+
+    .btn-skip:hover {
+        background-color: #5a6268;
+    }
+</style>
+</head>
+<body style="background-color: #f4f7f6;">
+
+<div class="interest-container">
+    <h2>Select Your Interests</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="interests-grid">
+            {% for interest in interests %}
+            <label class="interest-item">
+                <input type="checkbox" name="interests" value="{{ interest.id }}">
+                <span>{{ interest.name }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        <div class="btn-group">
+            <button type="submit" class="btn-save">Save & Continue</button>
+            <button type="button" class="btn-skip" onclick="window.location.href='{% url 'skip_interests' %}'">Skip</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

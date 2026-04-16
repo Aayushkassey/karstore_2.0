@@ -1,0 +1,79 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>Create Account</h2>
+
+        {% if error %}
+            <div class="error_message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="input-group">
+                <input type="text" name="username" class="auth-field check-field" placeholder="Username" required>
+                <div class="msg-box"></div> 
+            </div>
+
+            <div class="input-group">
+                <input type="email" name="email" class="auth-field check-field" placeholder="Email Address" required>
+                <div class="msg-box"></div>
+            </div>
+
+            <input type="password" name="password" class="auth-field" placeholder="Password" required autocomplete="new-password">
+            
+            <select name="role" class="auth-field">
+                <option value="CUSTOMER">Customer</option>
+                <option value="SELLER">Seller</option>
+            </select>
+            
+            <button type="submit" class="auth-btn" id="regBtn">Register</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'login' %}">Sign In here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const submitBtn = document.getElementById('regBtn');
+    
+    document.querySelectorAll('.check-field').forEach(item => {
+        item.addEventListener('input', function() {
+            let val = this.value;
+            let display = this.nextElementSibling; 
+
+            if (val.length > 3) {
+                // Determine if we are checking username or email
+                let type = this.name === 'username' ? 'username' : 'email';
+                
+                fetch(`/check-username/?value=${encodeURIComponent(val)}&type=${type}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        display.innerHTML = data;
+                        
+                        if (data.includes("Already")) {
+                            submitBtn.disabled = true;
+                            submitBtn.classList.add('btn-disabled');
+                        } else {
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove('btn-disabled');
+                        }
+                    });
+            } else {
+                display.innerHTML = "";
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-disabled');
+            }
+        });
+    });
+</script>
+{% endblock %}

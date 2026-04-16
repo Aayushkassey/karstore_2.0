@@ -1,0 +1,53 @@
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f6f9;
+}
+
+.add-product-container{
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.1);
+}
+
+.add-product-container h2{
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.add-product-container input,
+.add-product-container textarea,
+.add-product-container select{
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.add-product-container textarea{
+    height: 90px;
+    resize: none;
+}
+
+.add-product-container input[type="file"]{
+    border: none;
+}
+
+.add-product-container button{
+    width: 100%;
+    padding: 10px;
+    background-color: #2ecc71;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.add-product-container button:hover{
+    background-color: #27ae60;
+}

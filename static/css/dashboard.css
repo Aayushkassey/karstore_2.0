@@ -1,0 +1,125 @@
+/* ===== Seller Dashboard Container ===== */
+.dashboard-container {
+    max-width: 1000px; /* Ali pharakilo banako */
+    margin: 60px auto;
+    padding: 0 20px;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.dashboard-container h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 5px;
+}
+
+.welcome {
+    margin-bottom: 40px;
+    color: #777;
+    font-size: 16px;
+}
+
+/* ===== Cards Layout ===== */
+.dashboard-cards {
+    display: flex;
+    gap: 25px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* ===== Single Card Styling ===== */
+.dashboard-card {
+    background: #ffffff;
+    padding: 35px 25px;
+    width: 260px; /* Consistency ko lagi fixed width */
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover Effect: Card mathi ucline */
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+    border-color: #f85606; /* Hover garda highlight color */
+}
+
+/* Card Titles */
+.dashboard-card h3 {
+    font-size: 20px;
+    margin: 15px 0 10px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* Card Descriptions */
+.dashboard-card p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Icon Styling (Emoji ko lagi) */
+.card-icon {
+    font-size: 40px;
+    margin-bottom: 5px;
+}
+
+/* ===== Special Card Styles ===== */
+
+/* 1. Add Product Card (Action focused) */
+.action-card {
+    background: #fffafa; /* Light orange tint */
+    border: 1px dashed #f85606;
+}
+
+.action-card h3 {
+    color: #f85606;
+}
+
+/* 2. Total Products (Status card - Not a link) */
+.stats-card {
+    cursor: default;
+}
+
+.stats-card:hover {
+    transform: none; /* Stats card hover ma uclinu pardaina */
+    border-color: #f0f0f0;
+}
+
+.count-number {
+    font-size: 38px !important;
+    font-weight: 800;
+    color: #f85606 !important;
+    margin-top: 10px !important;
+}
+
+/* Sub-text for count */
+.sub-text {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 600px) {
+    .dashboard-card {
+        width: 100%; /* Mobile ma card full width hunchha */
+        margin: 0 10px;
+    }
+    
+    .dashboard-container {
+        margin: 30px auto;
+    }
+}

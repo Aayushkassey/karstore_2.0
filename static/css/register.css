@@ -1,0 +1,125 @@
+/* ===== Register Page Styling ===== */
+
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 85vh;
+    padding: 30px 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 450px;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #222;
+    font-weight: 700;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-field {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    background: #fcfcfc;
+    transition: 0.3s;
+}
+
+.auth-field:focus {
+    border-color: #f85606;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(248, 86, 6, 0.1);
+}
+
+/* AJAX Message Box Styling */
+.msg-box {
+    height: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 2px;
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+
+/* Specific styling for password and select */
+.auth-form input[type="password"], 
+.auth-form select {
+    margin-bottom: 15px;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #f85606;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.auth-btn:hover {
+    background-color: #d94400;
+}
+
+/* Disabled State for Button */
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
+.error_message {
+    background: #fdeaea;
+    color: #d93025;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #666;
+}
+
+.auth-footer a {
+    color: #f85606;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 25px;
+    }
+}

@@ -1,0 +1,143 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="main-container">
+
+    {% if not query and request.resolver_match.url_name == 'home' %}
+        <div class="hero-banner">
+            <h1 style="font-size: 36px; font-weight: 700;">Your Summer Deals Start Here</h1>
+            <p style="font-size: 18px; opacity: 0.9;">Upto 60% Off on Top Brands</p>
+        </div>
+
+        <div class="section-header">
+            <h2 style="font-size: 22px; font-weight: 700;">🔥 Popular Products</h2>
+            <a href="#all-products" style="color: #f85606; text-decoration: none; font-weight: 600;">View All</a>
+        </div>
+
+        <div class="product-grid">
+            {% for product in highly_searched %}
+                {% include 'components/product_card.html' with product=product %}
+            {% endfor %}
+        </div>
+        <br>
+    {% endif %} 
+    
+    <div class="section-header" id="all-products">
+        <h2 style="font-size: 22px; font-weight: 700;">{{ message }}</h2>
+    </div>
+
+    <div class="product-grid" id="product-list-container">
+        {% for product in page_obj %}
+            {% include 'components/product_card.html' with product=product %}
+        {% empty %}
+            <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #666;">
+                <h3>No products found matching your search.</h3>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin: 40px 0;">
+        {% if page_obj.has_next %}
+            <button id="load-more-btn" 
+                    data-page="{{ page_obj.next_page_number }}" 
+                    style="padding: 12px 40px; background: #f85606; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.3s;">
+                LOAD MORE
+            </button>
+        {% endif %}
+        
+        <div id="loading-spinner" style="display: none; color: #f85606; font-weight: bold; padding: 10px;">
+            Loading more products...
+        </div>
+        <p id="no-more-msg" style="display: none; color: #888; margin-top: 20px;">No more products to show.</p>
+    </div>
+
+</div>
+
+{% include 'components/product_modal.html' %}
+
+<script>
+    // --- 1. GLOBAL CART UPDATE FUNCTION ---
+    // Yasle Home page ma pani real-time cart update garchha
+    function handleAddToCart(event, productId) {
+        if (event) { 
+            event.preventDefault(); 
+            event.stopPropagation(); 
+        }
+        
+        fetch(`/orders/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: { 
+                'X-CSRFToken': '{{ csrf_token }}', 
+                'X-Requested-With': 'XMLHttpRequest' 
+            }
+        })
+        .then(r => r.json())
+        .then(data => { 
+            if (data.status === 'success') {
+                alert("Added to cart!");
+                // Navbar ko cart-count id vako element update garne
+                const cartElement = document.getElementById('cart-count');
+                if (cartElement && data.cart_count !== undefined) {
+                    cartElement.innerText = `(${data.cart_count})`;
+                }
+            } else if (data.status === 'login_required') {
+                window.location.href = "{% url 'login' %}?next={{ request.path }}";
+            }
+        })
+        .catch(e => console.error("Error:", e));
+    }
+
+    // --- 2. WHISTLE TOGGLE FUNCTION ---
+    function toggleWhistle(event, productId) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        fetch(`/toggle-whistle/${productId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const iconContainer = document.getElementById(`whistle-icon-${productId}`);
+                const heartEmoji = iconContainer.querySelector('.heart-emoji');
+                heartEmoji.innerHTML = data.is_whistle ? '❤️' : '🤍';
+                iconContainer.style.transform = 'scale(1.3)';
+                setTimeout(() => { iconContainer.style.transform = 'scale(1)'; }, 200);
+            } else {
+                window.location.href = "{% url 'login' %}";
+            }
+        });
+    }
+
+    // --- 3. LOAD MORE FUNCTION ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const productContainer = document.getElementById('product-list-container');
+
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function() {
+                const nextPage = this.getAttribute('data-page');
+                document.getElementById('loading-spinner').style.display = 'block';
+                this.style.display = 'none';
+
+                fetch(`?page=${nextPage}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data.trim() === "") {
+                        document.getElementById('no-more-msg').style.display = 'block';
+                        document.getElementById('loading-spinner').style.display = 'none';
+                    } else {
+                        productContainer.insertAdjacentHTML('beforeend', data);
+                        loadMoreBtn.setAttribute('data-page', parseInt(nextPage) + 1);
+                        loadMoreBtn.style.display = 'inline-block';
+                        document.getElementById('loading-spinner').style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

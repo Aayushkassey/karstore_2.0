@@ -1,0 +1,96 @@
+/* ===== Login/Register Page Styling ===== */
+
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh; /* Navbar bhanda tala center ma rakhna */
+    padding: 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #222;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* Inputs styling */
+.auth-field {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 18px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    outline: none;
+    font-size: 15px;
+    background-color: #fcfcfc;
+    transition: all 0.3s ease;
+}
+
+.auth-field:focus {
+    border-color: #f85606;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(248, 86, 6, 0.1);
+}
+
+/* Button styling */
+.auth-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #f85606;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.auth-btn:hover {
+    background-color: #d94400;
+}
+
+/* Links & Footer */
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.auth-footer a {
+    text-decoration: none;
+    color: #f85606;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Error Message */
+.error_message {
+    color: #d93025;
+    background-color: #fdeaea;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 20px;
+    border: 1px solid #f9d6d6;
+}

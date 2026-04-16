@@ -1,0 +1,116 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="section-header mb-4" style="border-bottom: 2px solid #f85606; padding-bottom: 10px;">
+        <h2 style="color: #212121;">⚡ KAR Store Whistles</h2>
+        <p class="text-muted">Handpicked exclusive products just for you!</p>
+    </div>
+
+    <div id="whistle-grid" class="product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+        {% for product in products %}
+            <div class="product-card" id="product-card-{{ product.id }}" style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; transition: 0.3s; display: flex; flex-direction: column;">
+                
+                <div class="product-clickable-area" 
+                     onclick="showProduct(event, '{{ product.name|escapejs }}', '{% if product.image %}{{ product.image.url }}{% endif %}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.id }}')"
+                     style="cursor: pointer; flex-grow: 1;">
+                    
+                    <div class="product-img" style="height: 200px; overflow: hidden;">
+                        <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/default_product.png' %}{% endif %}" 
+                             alt="{{ product.name }}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <div class="product-info" style="padding: 15px;">
+                        <h5 style="font-size: 16px; margin-bottom: 8px; color: #333;">{{ product.name }}</h5>
+                        <p style="color: #f85606; font-weight: bold; font-size: 18px;">Rs. {{ product.price|floatformat:0 }}</p>
+                    </div>
+                </div>
+
+                <div class="card-footer" style="padding: 10px; background: #f9f9f9; text-align: center; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="handleWhistleClick(event, '{{ product.id }}')"
+                            style="width: 100%; font-weight: 500; cursor: pointer; padding: 8px; border-radius: 4px; border: 1px solid #dc3545; color: #dc3545; background: transparent;">
+                        Remove from Whistles
+                    </button>
+                    <button class="btn btn-sm btn-warning"
+                            onclick="addToCart('{{ product.id }}')"
+                            style="width: 100%; font-weight: 700; background: #f85606; color: #fff; border: none; cursor: pointer; padding: 10px; border-radius: 4px;">
+                        🛒 Add to Cart
+                    </button>
+                </div>
+            </div>
+        {% empty %}
+            <div id="empty-msg" style="grid-column: 1/-1; text-align: center; padding: 50px 0;">
+                <h4 class="text-muted">No "Whistles" items found right now.</h4>
+                <p>Browse other <a href="{% url 'home' %}">products</a>.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div id="js-empty-msg" class="text-center py-5" style="display: none;">
+        <h4 class="text-muted">No "Whistles" items found right now.</h4>
+        <p>Browse other <a href="{% url 'home' %}">products</a>.</p>
+    </div>
+</div>
+
+{% include 'components/product_modal.html' %}
+
+<script>
+    // 1. Remove (Toggle) Logic
+    function handleWhistleClick(event, productId) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        fetch(`/orders/toggle-whistle/${productId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const card = document.getElementById(`product-card-${productId}`);
+                if (card) {
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        card.remove();
+                        const grid = document.getElementById('whistle-grid');
+                        if (grid && grid.querySelectorAll('.product-card').length === 0) {
+                            document.getElementById('js-empty-msg').style.display = 'block';
+                            if(document.getElementById('empty-msg')) document.getElementById('empty-msg').style.display = 'none';
+                        }
+                    }, 300);
+                }
+            }
+        })
+        .catch(err => console.error("Error:", err));
+    }
+
+    // 2. Add to Cart Logic (Using your existing endpoint)
+    function addToCart(productId) {
+        fetch(`/orders/add-to-cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.status === 'success') {
+                alert('Success: Product added to cart!');
+            }
+        })
+        .catch(err => alert("Something went wrong!"));
+    }
+</script>
+{% endblock %}
