@@ -100,12 +100,24 @@ def product_list(request):
     return render(request, 'pages/products.html', context)
 
 def whistles_view(request):
+    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
+        CustomerActivity.objects.create(
+            user=request.user,
+            action='view_whistles'
+        )
     products = Product.objects.filter(is_whistle=True) 
     return render(request, 'pages/whistles.html', {'products': products})
 
 def toggle_whistle(request, product_id):
     if not request.user.is_authenticated:
         return JsonResponse({'status': 'login_required'}, status=401)
+    
+    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
+        CustomerActivity.objects.create(
+            user=request.user,
+            action='toggle_whistle',
+            product_id=product_id
+        )
 
     product = get_object_or_404(Product, id=product_id)
     

@@ -37,6 +37,8 @@ class CustomerActivity(models.Model):
             ('checkout', 'Checkout'),
             ('purchase', 'Purchase'),
             ('update_profile', 'Update Profile'),
+            ('view_whistles', 'View Whistles'),
+            ('toggle_whistle', 'Toggle Whistle'),
     ]
 
     user = models.ForeignKey(
