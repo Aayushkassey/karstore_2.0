@@ -1,5 +1,11 @@
 #!/bin/bash
-
+cd ..
+py -m pip install python-decouple
+if [ -d "karstore_2.0" ]; then
+    cd karstore_2.0
+else
+    cd karstore
+fi
 # 1. Virtual environment chhaina bhane banaune (Install garne part)
 if [ ! -d "../env" ]; then
     echo "Virtual environment bhetiyena. Create gardai chhu..."
