@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Path settings
-# Virtual environment root ma chha, tesaile path milayeko
-ENV_PATH="../env"
-# Django project vitrai run.sh vako le folder name chahidaina
-# Tara manage.py yehi folder ma chha ki nai check garne
+# Script ko location ma jane
+cd "$(dirname "$0")"
 
-# 1. Correct Python command bhetaune
+# Path settings
+ENV_PATH="../env"
+DOTENV_FILE="../.env"
+
+# 1. Python Check
 if command -v python3 &>/dev/null; then
     PYTHON_EXE="python3"
 elif command -v python &>/dev/null; then
@@ -18,27 +19,32 @@ fi
 
 echo "Using $PYTHON_EXE..."
 
-# 2. Virtual environment activate garne (Root directory bata)
+# 2. Virtual Environment Activate
 if [ -d "$ENV_PATH/Scripts" ]; then
-    source $ENV_PATH/Scripts/activate
+    source "$ENV_PATH/Scripts/activate"
 elif [ -d "$ENV_PATH/bin" ]; then
-    source $ENV_PATH/bin/activate
+    source "$ENV_PATH/bin/activate"
 else
-    echo "Error: Virtual environment 'env' root folder ma bhetiyena!"
+    echo "Error: Virtual environment bhetiyena!"
     exit 1
 fi
 
-# 3. Dependencies install garne (Yehi folder ko requirements.txt bata)
-echo "Installing/Updating dependencies..."
+# 3. Dependencies Install
 if [ -f "requirements.txt" ]; then
+    echo "Installing dependencies..."
     pip install -r requirements.txt
-else
-    echo "Warning: requirements.txt yehi folder ma bhetiyena!"
 fi
 
-# 4. Django migrations ra server start garne
+# 4. Django Run (Migrations + Server)
 if [ -f "manage.py" ]; then
-    echo "Applying database migrations..."
+    # Yadi .env bahira chha bhane, manually export garne (Optional but safe)
+    if [ -f "$DOTENV_FILE" ]; then
+        echo "Loading environment variables from $DOTENV_FILE"
+        # Exporting variables so Django can see them
+        export $(grep -v '^#' "$DOTENV_FILE" | xargs)
+    fi
+
+    echo "Applying migrations..."
     python manage.py makemigrations
     python manage.py migrate
 
@@ -47,6 +53,6 @@ if [ -f "manage.py" ]; then
     echo "----------------------------------------"
     python manage.py runserver
 else
-    echo "Error: manage.py bhetiyena! script 'karstore' folder bhitra rakha."
+    echo "Error: manage.py bhetiyena!"
     exit 1
 fi
