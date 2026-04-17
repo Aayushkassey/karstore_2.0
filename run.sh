@@ -1,9 +1,11 @@
 #!/bin/bash
 
-# Script ko location ma jane
+# Script भएको फोल्डरमा जाने
 cd "$(dirname "$0")"
 
-# Path settings
+# Path settings: 'env' र '.env' अहिलेकै फोल्डर (..) भन्दा बाहिर वा सँगै छन्
+# यदि 'env' फोल्डर 'karstore' भित्रै छ भने "./env" राख्नुहोस्
+# यदि 'env' फोल्डर 'karstore' को बाहिर छ भने "../env" ठिक छ
 ENV_PATH="../env"
 DOTENV_FILE="../.env"
 
@@ -25,7 +27,7 @@ if [ -d "$ENV_PATH/Scripts" ]; then
 elif [ -d "$ENV_PATH/bin" ]; then
     source "$ENV_PATH/bin/activate"
 else
-    echo "Error: Virtual environment bhetiyena!"
+    echo "Error: Virtual environment bhetiyena! Path milayera check garnuhos: $ENV_PATH"
     exit 1
 fi
 
@@ -35,23 +37,22 @@ if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 fi
 
-# 4. Django Run (Migrations + Server)
+# 4. Django Run
 if [ -f "manage.py" ]; then
-    # Yadi .env bahira chha bhane, manually export garne (Optional but safe)
+    # .env फाइल लोड गर्ने
     if [ -f "$DOTENV_FILE" ]; then
         echo "Loading environment variables from $DOTENV_FILE"
-        # Exporting variables so Django can see them
         export $(grep -v '^#' "$DOTENV_FILE" | xargs)
     fi
 
     echo "Applying migrations..."
-    python manage.py makemigrations
-    python manage.py migrate
+    $PYTHON_EXE manage.py makemigrations
+    $PYTHON_EXE manage.py migrate
 
     echo "----------------------------------------"
     echo "Setup Complete! Starting Django Server..."
     echo "----------------------------------------"
-    python manage.py runserver
+    $PYTHON_EXE manage.py runserver
 else
     echo "Error: manage.py bhetiyena!"
     exit 1
