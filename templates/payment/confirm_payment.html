@@ -1,0 +1,26 @@
+{% extends 'pages/base.html' %}
+{% block content %}
+<div style="text-align: center; padding: 100px 20px;">
+    <h2>Redirecting to eSewa...</h2>
+    <p>Please wait while we transfer you to the secure payment page.</p>
+
+    <form id="esewa-form" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+    {% for field_name, field_value in esewa_form_fields.items %}
+        <input type="hidden" name="{{ field_name }}" value="{{ field_value }}">
+    {% endfor %}
+    <button type="submit">Pay Now (If not redirected)</button>
+</form>
+
+<script>
+    // Safe execution ko lagi yo try gara
+    window.onload = function() {
+        var form = document.getElementById('esewa-form');
+        if (form) {
+            console.log("Redirecting...");
+            form.submit();
+        } else {
+            console.error("Form not found!");
+        }
+    }
+</script>
+{% endblock %}

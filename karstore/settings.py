@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +46,7 @@ EXTERNAL_APPS = [
     'orders',
     'sellerpanel',
     'adminpanel',
+    'payment',
 ]
 INSTALLED_APPS += EXTERNAL_APPS
 

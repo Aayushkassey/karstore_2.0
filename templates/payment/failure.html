@@ -1,0 +1,21 @@
+{% extends 'pages/base.html' %}
+{% block content %}
+<div style="max-width: 600px; margin: 80px auto; text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.1);">
+    <div style="width: 80px; height: 80px; background: #FF4D4D; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px;">
+        ✕
+    </div>
+    <h1 style="color: #333; margin-bottom: 10px;">Payment Failed</h1>
+    <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
+        Oops! Something went wrong with your transaction. It might be due to incorrect credentials or manual cancellation.
+    </p>
+
+    <div style="display: flex; gap: 10px; justify-content: center;">
+        <a href="{% url 'cart_detail' %}" style="display: inline-block; background: #f85606; color: white; padding: 10px 20px; text-decoration: none; border-radius: 7px; font-weight: 500;">
+            TRY AGAIN
+        </a>
+        <a href="{% url 'home' %}" style="display: inline-block; border: 2px solid #f85606; color: #f85606; padding: 10px 20px; text-decoration: none; border-radius: 7px; font-weight: 500;">
+            BACK TO HOME
+        </a>
+    </div>
+</div>
+{% endblock %}

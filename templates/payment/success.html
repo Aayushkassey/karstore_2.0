@@ -1,0 +1,22 @@
+{% extends 'pages/base.html' %}
+{% block content %}
+<div style="max-width: 600px; margin: 80px auto; text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.1);">
+    <div style="width: 80px; height: 80px; background: #4BB543; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px;">
+        ✓
+    </div>
+    <h1 style="color: #333; margin-bottom: 10px;">Payment Successful!</h1>
+    <p style="color: #666; font-size: 16px; margin-bottom: 30px;">
+        Thank you for your purchase. Your transaction has been completed successfully.
+    </p>
+
+    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: left; margin-bottom: 30px; border: 1px dashed #ddd;">
+        <p style="margin: 5px 0;"><strong>Order ID:</strong> {{ order.uuid }}</p>
+        <p style="margin: 5px 0;"><strong>Amount Paid:</strong> Rs. {{ order.total_amount }}</p>
+        <p style="margin: 5px 0; color: #f85606;"><strong>Status:</strong> COMPLETED</p>
+    </div>
+
+    <a href="{% url 'home' %}" style="display: inline-block; background: #f85606; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 700;">
+        CONTINUE SHOPPING
+    </a>
+</div>
+{% endblock %}

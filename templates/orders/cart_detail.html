@@ -70,9 +70,14 @@
                         Rs. <span id="cart-total-price">{{ cart.total_price|floatformat:2 }}</span>
                     </h2>
                 </div>
-                <button style="background: #f85606; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(248, 86, 6, 0.3);">
-                    PROCEED TO CHECKOUT
-                </button>
+                <form action="{% url 'payment:checkout_process' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="total_price" value="{{ cart.total_price }}">
+    
+    <button type="submit" style="background: #f85606; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(248, 86, 6, 0.3);">
+        PROCEED TO CHECKOUT
+    </button>
+</form>
             </div>
         {% else %}
             <div style="text-align: center; padding: 60px 20px;">

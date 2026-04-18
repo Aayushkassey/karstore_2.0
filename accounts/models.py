@@ -35,7 +35,8 @@ class CustomerActivity(models.Model):
             ('add_to_cart', 'Add To Cart'),
             ('remove_from_cart', 'Remove From Cart'),
             ('checkout', 'Checkout'),
-            ('purchase', 'Purchase'),
+            ('purchase_success', 'Purchase Success'),
+            ('purchase_failed', 'Purchase Failed'),
             ('update_profile', 'Update Profile'),
             ('view_whistles', 'View Whistles'),
             ('toggle_whistle', 'Toggle Whistle'),
@@ -57,6 +58,5 @@ class CustomerActivity(models.Model):
 
     timestamp = models.DateTimeField(auto_now_add=True)
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
-
     def __str__(self):
         return f"{self.user} - {self.action}"

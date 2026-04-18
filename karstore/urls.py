@@ -12,6 +12,8 @@ urlpatterns = [
     # 1. Main Home Path (Products app bata aauchha)
     path('', include('products.urls')), 
     path('orders/', include('orders.urls')), # Orders app ko URL include gareko
+    path('payment/', include('payment.urls')), # Payment app ko URL include gareko
+    path('accounts/', include('accounts.urls')), # Accounts app ko URL include gareko
     
     # 2. Authentication Paths (Accounts logic)
     path('login/', login, name='login'),

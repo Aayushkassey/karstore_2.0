@@ -18,22 +18,37 @@
 
         <div class="nav-utilities">
             {% if user.is_authenticated %}
-                {% if user.role == 'CUSTOMER' and not user.is_staff  and not user.role == 'SELLER' %}
+                {% if user.role == 'CUSTOMER' and not user.is_staff and not user.role == 'SELLER' %}
                     <a href="{% url 'cart_detail' %}" class="cart-link" style="text-decoration: none; color: inherit;">
-                    🛒 Cart <strong  id="cart-count">({{ request.user.cart.items.count|default:0 }})</strong>
-                </a>
-                <a href= "{% url 'whistles' %}" class="auth-link">Whistles</a>
-                    {% endif %}
+                        🛒 Cart <strong id="cart-count">({{ request.user.cart.items.count|default:0 }})</strong>
+                    </a>
+                    <a href="{% url 'whistles' %}" class="auth-link">Whistles</a>
+                {% endif %}
                 <a href="{% url 'orders' %}" class="auth-link">Orders</a>
                 <a href="{% url 'products' %}" class="auth-link">Products</a>
-                <span class="user-info">Hi, {{ user.username }}</span>
-                {% if user.role == 'SELLER' %}
-                    <a href="{% url 'dashboard' %}" class="auth-link" style="color:#f85606;">DashBoard</a>
-                {% endif %}
-                <a href="{% url 'logout' %}" class="auth-link">Logout</a>
+
+                <div class="profile-dropdown">
+                    <div class="profile-trigger" onclick="toggleUserDropdown()">
+                        <img src="{% static 'image/account.png' %}" alt="Profile" class="user-logo-img">
+                    </div>
+                    
+                    <ul class="dropdown-menu" id="userMenu">
+                        <li class="user-name-header">Hi, {{ user.username }}</li>
+                        <hr>
+                        
+                        {% if user.role == 'SELLER' %}
+                            <li><a href="{% url 'dashboard' %}" style="color:#f85606; font-weight: bold;">Seller Dashboard</a></li>
+                        {% endif %}
+
+                        <li><a href="{% url 'account:update_profile' %}">Edit Profile</a></li> 
+                        <hr>
+                        <li><a href="{% url 'logout' %}" class="logout-btn">Logout</a></li>
+                    </ul>
+                </div>
+
             {% else %}
-                <a href="{% url 'login' %}" class="auth-link" id="sign-in-link" >Sign In</a>
-                <a href="{% url 'register' %}" class="auth-link" >Register</a>
+                <a href="{% url 'login' %}" class="auth-link" id="sign-in-link">Sign In</a>
+                <a href="{% url 'register' %}" class="auth-link">Register</a>
             {% endif %}
         </div>
     </header>
@@ -70,7 +85,6 @@
                     {% endfor %}
                 </ul>
             </div>
-            
             <div class="nav-addon-info">
                 <span style="color: #ffffff; font-weight: 500; font-size: 15px;">⚡ Flash Sale</span>
             </div>
@@ -78,3 +92,85 @@
     </nav>
     {% endif %}
 </div>
+
+<script>
+function toggleUserDropdown() {
+    const menu = document.getElementById("userMenu");
+    menu.classList.toggle("show-dropdown");
+}
+
+// Click outside garesi menu banda garna
+window.addEventListener('click', function(e) {
+    const dropdown = document.querySelector('.profile-dropdown');
+    const menu = document.getElementById("userMenu");
+    if (!dropdown.contains(e.target)) {
+        menu.classList.remove("show-dropdown");
+    }
+});
+</script>
+
+<style>
+.profile-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.user-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ffffff;
+    background: transparent;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    min-width: 180px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    z-index: 1000;
+    list-style: none;
+    padding: 10px 0;
+}
+
+.show-dropdown {
+    display: block !important;
+}
+
+.dropdown-menu li a {
+    padding: 10px 20px;
+    display: block;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.dropdown-menu li a:hover {
+    background: #f8f8f8;
+    color: #f85606;
+}
+
+.user-name-header {
+    padding: 5px 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.chevron-down {
+    font-size: 10px;
+    color: #666;
+}
+</style>
