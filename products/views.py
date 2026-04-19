@@ -6,6 +6,9 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 import requests
 
+from payment.models import Payment
+from orders.models import Order
+
 from .models import Product, Category
 from accounts.models import Interest, CustomerUser, CustomerActivity # Activity model import gareko
 
@@ -105,7 +108,32 @@ def dashboard(request):
         CustomerActivity.objects.create(user=request.user, action='view_dashboard')
 
     products = Product.objects.filter(seller=request.user).order_by('-id')
-    return render(request, 'pages/dashboard.html', {'products': products})
+    recent_orders = Order.objects.filter(product__seller=request.user).select_related('user', 'product').order_by('-created_at')
+    
+    context = {
+        'products': products,
+        'recent_orders': recent_orders,
+        'total_products': products.count(),
+        'total_sales': recent_orders.filter(status='Completed').count(),
+    }
+    
+    return render(request, 'pages/dashboard.html', context)
+
+@login_required
+def update_payment_status(request, uuid):
+    if request.user.role == 'SELLER':
+        payment = get_object_or_404(Payment, uuid=uuid)
+        if request.method == 'POST':
+            new_status = request.POST.get('status')
+            payment.status = new_status
+            payment.save()
+            
+            CustomerActivity.objects.create(
+                user=payment.user,
+                action=f'order_{new_status.lower()}',
+                transaction_id=str(payment.uuid)
+            )
+    return redirect('dashboard')
 
 # 5. Seller le product add garne view
 @login_required

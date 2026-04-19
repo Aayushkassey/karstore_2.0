@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from urllib3 import request
+from .models import Order
 from products.models import Product
 from .models import Cart, CartItem
 from django.http import JsonResponse
 # CustomerActivity import garnu parchha (accounts app bata)
 from accounts.models import CustomerActivity 
+from django.contrib import messages
 
 def add_to_cart(request, product_id):
     if not request.user.is_authenticated:
@@ -88,10 +90,44 @@ def update_cart_qty(request, product_id):
         'subtotal': cart_item.subtotal   # Individual item ko subtotal
     })
 
+@login_required
 def orders_view(request):
-    # Order list garda pani record rakhna milcha
-    return render(request, 'orders/orders.html')
+    orders = Order.objects.filter(user=request.user).select_related('product').order_by('-created_at')
 
+    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and request.user.role == 'CUSTOMER':
+        CustomerActivity.objects.create(
+            user=request.user,
+            action='view_orders'
+        )
+
+    return render(request, 'orders/orders.html', {'orders': orders})
+
+@login_required
+def update_order_status(request):
+    if request.method == 'POST' and request.user.role == 'SELLER':
+        order_id = request.POST.get('order_id')
+        new_status = request.POST.get('status')
+        
+        # Ensure the order belongs to one of the seller's products
+        order = get_object_or_404(Order, id=order_id, product__seller=request.user)
+        order.status = new_status
+        order.save()
+        
+        messages.success(request, f"Order #{order.id} status updated to {new_status}.")
+        return redirect('dashboard') # Redirect back to dashboard
+    
+    return redirect('dashboard')
+
+def delete_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order.delete()
+    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and request.user.role == 'CUSTOMER':
+        CustomerActivity.objects.create(
+            user=request.user,
+            action='delete_order',
+            product_id=str(order.product.id)  # FK object ko id pathako
+        )
+    return redirect('orders')
 def product_list(request):
     products = Product.objects.all().order_by('?') 
     context = {

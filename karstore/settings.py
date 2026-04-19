@@ -91,8 +91,12 @@ WSGI_APPLICATION = 'karstore.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'karstore_db',   # pgAdmin मा तिमीले राखेको नाम
+        'USER': 'postgres',      # डिफोल्ट युजर
+        'PASSWORD': 'admin123',  # तिमीले अघि सेट गरेको पासवर्ड
+        'HOST': '127.0.0.1',     # लोकलहोस्ट
+        'PORT': '5432',          # डिफोल्ट पोर्ट
     }
 }
 

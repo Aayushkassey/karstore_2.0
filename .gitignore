@@ -1,4 +1,11 @@
 
+# Custom Project Backups & Data
+local_data.json
+fixed_data.json
+final.json
+fresh.json
+*.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

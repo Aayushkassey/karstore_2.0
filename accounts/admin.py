@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import CustomerUser, Interest, CustomerActivity
-
+from payment.models import Payment
 # Register your models here.
 
 class CustomerActivityAdmin(admin.ModelAdmin):
@@ -16,8 +16,9 @@ class ProductAdmin(admin.ModelAdmin):
 admin.site.register(CustomerUser)
 admin.site.register(Interest)
 admin.site.register(CustomerActivity, CustomerActivityAdmin)
+admin.site.register(Payment)
 
 
-admin.site.site_header = "Karstore Admin"
-admin.site.site_title = "Karstore Admin Portal"
-admin.site.index_title = "Welcome to Karstore Admin Portal"
+admin.site.site_header = "KarStore Admin"
+admin.site.site_title = "KarStore Admin Portal"
+admin.site.index_title = "Welcome to KarStore Admin Portal"

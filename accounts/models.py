@@ -31,6 +31,8 @@ class CustomerActivity(models.Model):
             ('view_dashboard', 'View Dashboard'),
             ('view_product', 'View Product'),
             ('view_category', 'View Category'),
+            ('view_orders', 'View Orders'),
+            ('delete_order', 'Delete Order'),
             ('search', 'Search'),
             ('add_to_cart', 'Add To Cart'),
             ('remove_from_cart', 'Remove From Cart'),
@@ -60,3 +62,6 @@ class CustomerActivity(models.Model):
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
     def __str__(self):
         return f"{self.user} - {self.action}"
+    
+    class Meta:
+        verbose_name_plural = 'Customer Activities'

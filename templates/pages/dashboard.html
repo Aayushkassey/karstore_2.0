@@ -4,29 +4,105 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 
-<div class="dashboard-container">
-    <div class="dashboard-header" style="margin-bottom: 40px; text-align: center;">
-        <h1 style="font-size: 32px; font-weight: 700;">Seller Dashboard</h1>
-        <p style="color: #666;">Manage your store and inventory here.</p>
+<div class="dashboard-container" style="padding: 30px 0; background: #fdfdfd; min-height: 80vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    <div class="dashboard-header" style="margin-bottom: 30px; text-align: center;">
+        <h1 style="font-size: 28px; font-weight: 700; color: #333;">Seller Dashboard</h1>
+        <p style="color: #666;">Welcome back, <strong>{{ request.user.username }}</strong>. Here is what's happening with your store.</p>
     </div>
 
-    <div class="dashboard-cards" style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
-        <a href="{% url 'home' %}" class="dashboard-card" style="background: white; padding: 40px; border-radius: 15px; width: 280px; text-align: center; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-            <div style="font-size: 40px; margin-bottom: 15px;">🏪</div>
-            <h3 style="color: #333;">Visit Store</h3>
-            <p style="color: #888; font-size: 14px;">Preview your public shop</p>
+    <div class="dashboard-cards" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
+        
+        <a href="{% url 'home' %}" class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; width: 200px; text-align: center; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.2s;">
+            <div style="font-size: 30px; margin-bottom: 10px;">🏪</div>
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 5px;">Visit Store</h3>
+            <p style="color: #999; font-size: 13px;">View your public shop</p>
         </a>
 
-        <a href="{% url 'add_product' %}" class="dashboard-card" style="background: white; padding: 40px; border-radius: 15px; width: 280px; text-align: center; text-decoration: none; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px dashed #f85606;">
-            <div style="font-size: 40px; margin-bottom: 15px;">➕</div>
-            <h3 style="color: #f85606;">Add Product</h3>
-            <p style="color: #888; font-size: 14px;">List a new item for sale</p>
+        <a href="{% url 'add_product' %}" class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; width: 200px; text-align: center; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px dashed #f85606;">
+            <div style="font-size: 30px; margin-bottom: 10px;">➕</div>
+            <h3 style="color: #f85606; font-size: 18px; margin-bottom: 5px;">Add Product</h3>
+            <p style="color: #999; font-size: 13px;">List new inventory</p>
         </a>
 
-        <div class="dashboard-card" style="background: white; padding: 40px; border-radius: 15px; width: 280px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-            <div style="font-size: 40px; margin-bottom: 15px;">📦</div>
-            <h3 style="color: #333;">Total Products</h3>
-            <p style="color: #f85606; font-size: 36px; font-weight: 700; margin: 0;">{{ products.count }}</p>
+        <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; width: 200px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <div style="font-size: 30px; margin-bottom: 10px;">📦</div>
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 5px;">Products</h3>
+            <p style="color: #333; font-size: 32px; font-weight: 700; margin: 0;">{{ total_products }}</p>
+        </div>
+
+        <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; width: 200px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <div style="font-size: 30px; margin-bottom: 10px;">✅</div>
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 5px;">Total Sales</h3>
+            <p style="color: #00b087; font-size: 32px; font-weight: 700; margin: 0;">{{ total_sales }}</p>
+        </div>
+    </div>
+
+    <div style="max-width: 1100px; margin: 0 auto; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2 style="margin: 0; font-size: 22px; color: #333; border-left: 6px solid #f85606; padding-left: 15px;">
+                Recent Customer Orders
+            </h2>
+            {% if messages %}
+                {% for message in messages %}
+                    <span style="font-size: 13px; color: #00b087; font-weight: 600;">{{ message }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 850px;">
+                <thead>
+                    <tr style="background: #fafafa; border-bottom: 2px solid #f1f1f1; text-align: left;">
+                        <th style="padding: 15px; font-size: 13px; color: #888; text-transform: uppercase;">Customer</th>
+                        <th style="padding: 15px; font-size: 13px; color: #888; text-transform: uppercase;">Product</th>
+                        <th style="padding: 15px; font-size: 13px; color: #888; text-transform: uppercase;">Amount</th>
+                        <th style="padding: 15px; font-size: 13px; color: #888; text-transform: uppercase;">Status</th>
+                        <th style="padding: 15px; font-size: 13px; color: #888; text-transform: uppercase; text-align: center;">Update Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr style="border-bottom: 1px solid #f9f9f9; transition: background 0.2s;">
+                        <td style="padding: 15px;">
+                            <div style="font-weight: 600; color: #333;">{{ order.user.username }}</div>
+                            <small style="color: #aaa;">{{ order.created_at|date:"M d, H:i" }}</small>
+                        </td>
+                        <td style="padding: 15px;">
+                            <span style="font-weight: 500; color: #444;">{{ order.product.name }}</span>
+                            <br><small style="color: #999;">Qty: {{ order.quantity }}</small>
+                        </td>
+                        <td style="padding: 15px; font-weight: 700; color: #333;">Rs. {{ order.product.price }}</td>
+                        <td style="padding: 15px;">
+                            <span style="display: inline-block; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+                                {% if order.status == 'Completed' %} background: #e6fffa; color: #00b087;
+                                {% elif order.status == 'Cancelled' %} background: #fff5f5; color: #e53e3e;
+                                {% else %} background: #fff9db; color: #f08c00; {% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 15px; text-align: center;">
+                            <form method="POST" action="{% url 'update_order_status' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="order_id" value="{{ order.id }}">
+                                <select name="status" onchange="this.form.submit()" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px; background: #fff; cursor: pointer;">
+                                    <option value="Pending" {% if order.status == "Pending" %}selected{% endif %}>Pending</option>
+                                    <option value="Completed" {% if order.status == "Completed" %}selected{% endif %}>Completed</option>
+                                    <option value="Cancelled" {% if order.status == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 60px; text-align: center; color: #bbb;">
+                            <div style="font-size: 50px; margin-bottom: 15px;">📉</div>
+                            <p style="font-size: 16px;">No orders found for your products.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

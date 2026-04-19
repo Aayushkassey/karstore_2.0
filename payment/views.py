@@ -3,7 +3,8 @@ from .models import Payment  # Timro naya payment app ko model
 from django_esewa import EsewaPayment
 import uuid
 from accounts.models import CustomerActivity
-from orders.models import Cart
+from orders.models import Cart, Order
+
 def checkout_process(request):
     if request.method == 'POST':
         # Cart bata data tanni (e.g., total amount)
@@ -72,7 +73,14 @@ def payment_success(request, uuid):
 
     cart = Cart.objects.get(user=request.user)
     cart_items = cart.items.all()
+
     for item in cart_items:
+        Order.objects.create(
+            user=request.user,
+            product=item.product,
+            quantity=item.quantity,
+            status='Completed' # eSewa success भइसकेकोले
+        )
         CustomerActivity.objects.create(
             user=request.user,
             action='purchase_success',
@@ -91,6 +99,12 @@ def payment_failure(request, uuid):
     cart = Cart.objects.get(user=request.user)
     cart_items = cart.items.all()
     for item in cart_items:
+        Order.objects.create(
+            user=request.user,
+            product=item.product,
+            quantity=item.quantity,
+            status='Cancelled'  # अर्डर लिस्टमा देखाउन स्टेटस 'Cancelled' राखौँ
+        )
         CustomerActivity.objects.create(
             user=request.user,
             action='purchase_failed',

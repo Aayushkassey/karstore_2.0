@@ -5,6 +5,7 @@ urlpatterns = [
     path('', home, name='home'),
     path('category/<int:id>/', category_products, name='category_products'),
     path('dashboard/', dashboard, name='dashboard'),
+    path('update_payment_status/<uuid:uuid>/', update_payment_status, name='update_payment_status'),
     path('add-product/', add_product, name='add_product'),
     path('import-dummy-inventory/', seed_dummy_json_inventory, name='seed_dummy_json_inventory'),
     path('search-suggestions/', search_suggestions, name='search_suggestions'),
