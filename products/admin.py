@@ -18,7 +18,7 @@ class ProductAdmin(admin.ModelAdmin):
         'rating', 'stock', 'brand','discount_percentage', 'sku', 
     )
     
-    list_filter = ('name', 'category', 'rating', 'stock', 'price', 'total_sales',)
+    list_filter = ('name', 'category', 'rating', 'stock', 'price',)
     
     def total_sales_display(self, obj):
         count= obj.get_total_sales()

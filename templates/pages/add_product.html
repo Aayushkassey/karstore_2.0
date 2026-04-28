@@ -20,12 +20,17 @@
             </div>
             <div class="input-field">
                 <label>Category</label>
-                <select name="category" required>
+                <select name="category" id="category-select" required onchange="checkNewCategory(this)">
                     <option value="">Select Category</option>
                     {% for category in categories %}
                     <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
+                    <option value="new_category" style="color: #f85606; font-weight: bold;">+ Add New Category</option>
                 </select>
+
+                <div id="new-category-input" style="display: none; margin-top: 10px;">
+                    <input type="text" name="new_category_name" placeholder="Enter new category name">
+                </div>
             </div>
         </div>
 
@@ -55,5 +60,21 @@
         <button type="submit">🚀 Add Product to Store</button>
     </form>
 </div>
+
+<script>
+    function checkNewCategory(select) {
+    const newCatInput = document.getElementById('new-category-input');
+    const inputField = newCatInput.querySelector('input');
+    
+    if (select.value === 'new_category') {
+        newCatInput.style.display = 'block';
+        inputField.required = true;
+        inputField.focus();
+    } else {
+        newCatInput.style.display = 'none';
+        inputField.required = false;
+    }
+}
+</script>
 
 {% endblock %}

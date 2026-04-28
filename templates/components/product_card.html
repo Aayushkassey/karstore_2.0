@@ -23,9 +23,9 @@
             {% endif %}>
             
             <span class="heart-emoji-{{ product.id }}" style="font-size: 20px; pointer-events: none; line-height: 1;">
-                {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}
-                    {% if product.is_whistle %}❤️{% else %}🤍{% endif %}
-                    {% else %}
+                {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' and product.is_whistle %}
+                    ❤️
+                {% else %}
                     🤍
                 {% endif %}
             </span>
@@ -118,12 +118,29 @@ function handleViewDetails(e, name, img, discountedPrice, realPrice, desc, ratin
 }
 
 // २. Add to Cart फङ्सन - SAME, kei change xaina
+// १. स्क्रिप्टको सुरुमा युजरको रोल थाहा पाउने
+const userRole = "{{ request.user.role|default:'GUEST' }}";
+const isAuthenticated = "{{ request.user.is_authenticated|yesno:'true,false' }}" === "true";
+
 function handleAddToCart(e, productId) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
     }
-    
+
+    // २. यदि लगइन छैन भने सिधै लगइनमा पठाउने
+    if (!isAuthenticated) {
+        window.location.href = "/login/";
+        return;
+    }
+
+    // ३. यदि लगइन छ तर 'CUSTOMER' होइन भने (जस्तै सेलर वा स्टाफ)
+    if (userRole !== 'CUSTOMER') {
+        alert("Sellers, Admin and Staff are not allowed ! Make Customer Account 🚫");
+        return;
+    }
+
+    // ४. कस्टमर हो भने मात्र Fetch गर्ने
     fetch(`/orders/add-to-cart/${productId}/`, {
         method: 'POST',
         headers: { 
@@ -139,12 +156,15 @@ function handleAddToCart(e, productId) {
                 cartCountElem.innerText = data.cart_count;
             }
             alert("Added to cart! 🛒");
-        } else {
+        } else if (data.status === 'unauthorized') {
             window.location.href = "/login/";
+        } else {
+            alert(data.message || "Error adding to cart.");
         }
     })
     .catch(err => console.error("Error:", err));
 }
+
 
 // ३. Whistle Toggle - SAME, kei change xaina
 function handleWhistleClick(e, productId) {
@@ -152,15 +172,41 @@ function handleWhistleClick(e, productId) {
         e.preventDefault();
         e.stopPropagation();
     }
+
+    // १. गेस्ट युजर चेक (लगइन नभएको भए लगइन पेजमा पठाउने)
+    const isAuthenticated = "{{ request.user.is_authenticated }}" === "True";
+    if (!isAuthenticated) {
+        window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
+        return;
+    }
+
+    // २. रोल चेक (कस्टमर बाहेक अरुलाई रोक्ने)
+    const userRole = "{{ request.user.role }}";
+    if (userRole !== "CUSTOMER") {
+        alert("Only customers can wishlist items!");
+        return;
+    }
+
+    if (!productId) return;
+
     fetch(`/orders/toggle-whistle/${productId}/`, { 
         headers: { 'X-Requested-With': 'XMLHttpRequest' } 
     })
     .then(r => r.json())
     .then(data => {
         if (data.status === 'success') {
+            const heartIcon = data.is_whistle ? '❤️' : '🤍';
+            
+            // ✅ कार्ड र मोडल दुवै ठाउँमा जहाँ यो क्लास छ, आइकन अपडेट हुन्छ
             document.querySelectorAll(`.heart-emoji-${productId}`).forEach(h => {
-                h.innerHTML = data.is_whistle ? '❤️' : '🤍';
+                h.innerHTML = heartIcon;
             });
+
+            // ✅ यदि मोडल खुला छ भने मोडलको मुटु पनि अपडेट गर्ने
+            const modalHeart = document.getElementById('modalHeart');
+            if (modalHeart && currentModalProductId == productId) {
+                modalHeart.innerText = heartIcon;
+            }
         }
     });
 }

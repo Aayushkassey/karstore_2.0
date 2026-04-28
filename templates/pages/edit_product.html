@@ -58,11 +58,18 @@
                 <div style="display: flex; gap: 20px; margin-bottom: 25px;">
                     <div style="flex: 1;">
                         <label class="form-label">Category</label>
-                        <select name="category" class="form-input">
+                        <select name="category" id="category-select" class="form-input" onchange="checkNewCategory(this)">
                             {% for cat in categories %}
-                                <option value="{{ cat.id }}" {% if cat.id == product.category.id %}selected{% endif %}>{{ cat.name }}</option>
+                                <option value="{{ cat.id }}" {% if cat.id == product.category.id %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
                             {% endfor %}
+                            <option value="new_category" style="color: #f85606; font-weight: bold;">+ Add New Category</option>
                         </select>
+
+                        <div id="new-category-input" style="display: none; margin-top: 10px;">
+                            <input type="text" name="new_category_name" class="form-input" placeholder="Enter new category name">
+                        </div>
                     </div>
                     <div style="flex: 1;">
                         <label class="form-label">Brand Name</label>
@@ -109,4 +116,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function checkNewCategory(select) {
+    const newCatInput = document.getElementById('new-category-input');
+    const inputField = newCatInput.querySelector('input');
+    
+    if (select.value === 'new_category') {
+        newCatInput.style.display = 'block';
+        inputField.required = true;
+        inputField.focus();
+    } else {
+        newCatInput.style.display = 'none';
+        inputField.required = false;
+    }
+}
+</script>
+
 {% endblock %}

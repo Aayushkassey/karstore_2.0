@@ -307,7 +307,7 @@
         <div class="modal-main-content">
             <div class="modal-left">
                 <div class="modal-wishlist" 
-                {% if request.user.is_authenticated and  request.user.role == 'CUSTOMER' %}
+                {% if not request.user.is_authenticated or request.user.role == 'CUSTOMER' %}
                     onclick="handleWhistleClick(event, currentModalProductId)" 
                 {% else %}
                     style="opacity: 0.5; cursor: not-allowed; pointer-events: none; background: #eee;"
@@ -504,24 +504,36 @@
     }
 
     function handleWhistleClick(e, productId) {
+    if (e) e.stopPropagation();
 
-        if ("{{request.user.role}}" !== "CUSTOMER") return;
-
-        if (e) e.stopPropagation();
-        if (!productId) return;
-        fetch(`/orders/toggle-whistle/${productId}/`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    document.getElementById('modalHeart').innerText = data.is_whistle ? '❤️' : '🤍';
-                    document.querySelectorAll(`.heart-emoji-${productId}`).forEach(h => {
-                        h.innerHTML = data.is_whistle ? '❤️' : '🤍';
-                    });
-                }
-            });
+    // १. पहिले लगइन छ कि छैन चेक गर्ने (गेस्टका लागि)
+    const isAuthenticated = "{{ request.user.is_authenticated }}" === "True";
+    
+    if (!isAuthenticated) {
+        // लगइन छैन भने लगइन पेजमा पठाउने
+        window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
+        return;
     }
+
+    // २. लगइन छ भने रोल चेक गर्ने (तिमीले दिएकै लजिक)
+    if ("{{request.user.role}}" !== "CUSTOMER") return;
+
+    if (!productId) return;
+    
+    fetch(`/orders/toggle-whistle/${productId}/`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('modalHeart').innerText = data.is_whistle ? '❤️' : '🤍';
+            document.querySelectorAll(`.heart-emoji-${productId}`).forEach(h => {
+                h.innerHTML = data.is_whistle ? '❤️' : '🤍';
+            });
+        }
+    });
+}
+
 
     function sendToCartFromModal(e) {
         if (e) e.stopPropagation();

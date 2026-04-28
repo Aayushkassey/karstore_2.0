@@ -93,11 +93,11 @@ WSGI_APPLICATION = 'karstore.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'karstore_db',   # pgAdmin मा तिमीले राखेको नाम
-        'USER': 'postgres',      # डिफोल्ट युजर
-        'PASSWORD': 'admin123',  # तिमीले अघि सेट गरेको पासवर्ड
-        'HOST': '127.0.0.1',     # लोकलहोस्ट
-        'PORT': '5432',          # डिफोल्ट पोर्ट
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
@@ -153,6 +153,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'karstoreinfo@gmail.com'
-EMAIL_HOST_PASSWORD = 'rjme pewj bczw gkck' 
-DEFAULT_FROM_EMAIL = 'KAR Store <karstoreinfo@gmail.com>'
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')

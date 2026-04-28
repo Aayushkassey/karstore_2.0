@@ -8,8 +8,17 @@ from django.http import JsonResponse
 # CustomerActivity import garnu parchha (accounts app bata)
 from accounts.models import CustomerActivity 
 from django.contrib import messages
+from orders.models import Whistle
 
+@login_required
 def add_to_cart(request, product_id):
+    if request.user.role != 'CUSTOMER':
+        return JsonResponse({
+            'status': 'error', 
+            'message': 'Only customers can add items to cart.'
+        }, status=403)
+
+
     if not request.user.is_authenticated:
         return JsonResponse({'status': 'login_required'}, status=401)
 
@@ -179,31 +188,48 @@ def product_list(request):
     }
     return render(request, 'pages/products.html', context)
 
+
 def whistles_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    # Activity Log: विस्लिस्ट पेज हेरेको रेकर्ड
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
         CustomerActivity.objects.create(
             user=request.user,
             action='view_whistles'
         )
-    products = Product.objects.filter(is_whistle=True) 
-    return render(request, 'pages/whistles.html', {'products': products})
+    
+    
+    whistled_products = Product.objects.filter(whistle__user=request.user).order_by('-whistle__created_at')
+    
+    return render(request, 'pages/whistles.html', {'products': whistled_products})
 
+
+# २. मुटु थिच्दा (Add/Remove) हुने View
+@login_required
 def toggle_whistle(request, product_id):
     if not request.user.is_authenticated:
         return JsonResponse({'status': 'login_required'}, status=401)
     
-
     product = get_object_or_404(Product, id=product_id)
     
+    # ✅ Private Logic: Whistle टेबलमा यो युजर र प्रोडक्ट छ कि छैन चेक गर्ने
+    whistle_qs = Whistle.objects.filter(user=request.user, product=product)
+    
+    if whistle_qs.exists():
+        # पहिले नै मन पराएको रहेछ भने हटाउने
+        whistle_qs.delete()
+        is_whistle = False
+        current_action = 'remove_whistle'
+    else:
+        # मन पराएको छैन भने नयाँ रेकर्ड थप्ने
+        Whistle.objects.create(user=request.user, product=product)
+        is_whistle = True
+        current_action = 'add_whistle'
 
-    product.is_whistle = not product.is_whistle
-    product.save()
-
-
-    if not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
-        # नयाँ स्थिति अनुसार एक्सनको नाम राख्ने
-        current_action = 'add_whistle' if product.is_whistle else 'remove_whistle'
-        
+    # Customer Activity Log
+    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
         CustomerActivity.objects.create(
             user=request.user,
             action=current_action,
@@ -212,5 +238,5 @@ def toggle_whistle(request, product_id):
 
     return JsonResponse({
         'status': 'success', 
-        'is_whistle': product.is_whistle
+        'is_whistle': is_whistle  # यो भ्यालुले फ्रन्टइन्डमा मुटुको रङ फेर्छ
     })

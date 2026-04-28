@@ -1,33 +1,29 @@
 #!/bin/bash
-cd ..
-py -m pip install python-decouple
-if [ -d "karstore_2.0" ]; then
-    cd karstore_2.0
-else
-    cd karstore
-fi
-# 1. Virtual environment chhaina bhane banaune (Install garne part)
+
+# १. Virtual Environment (env) सेटअप
 if [ ! -d "../env" ]; then
-    echo "Virtual environment bhetiyena. Create gardai chhu..."
+    echo "🚀 Creating Virtual Environment..."
     python -m venv ../env
 fi
 
-# 2. Environment activate garne
+# २. Environment Activate गर्ने (Windows/Git Bash र Linux दुवैका लागि)
+echo "⚡ Activating environment..."
 source ../env/Scripts/activate 2>/dev/null || source ../env/bin/activate
 
-# 3. Dependencies install garne
-echo "Installing/Updating dependencies..."
+# ३. Requirements.txt बाट सबै प्याकेज अपडेट गर्ने
+echo "📦 Installing dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# 4. Database setup garne
-echo "Migrating database..."
+# ४. Database Migrations चलाउने
+echo "📂 Setting up Database..."
 python manage.py makemigrations
 python manage.py migrate
 
-# 5. Link dekhaune ra Server start garne
+# ५. सर्भर स्टार्ट गर्ने
 echo ""
 echo "------------------------------------------------"
-echo "  WEBSITE READY: http://127.0.0.1:8000/"
+echo " ✅ KAR STORE IS READY: http://127.0.0.1:8000/"
 echo "------------------------------------------------"
 echo ""
 

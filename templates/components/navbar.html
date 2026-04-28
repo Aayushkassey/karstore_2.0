@@ -75,7 +75,7 @@
                                     <p class="mega-title">Available Brands</p>
                                     <ul class="brand-list">
                                         {# यहाँ ब्रान्डको नाम लुप गर्ने - Slice 8 सम्म मात्र ताकि मेनु धेरै लामो नहोस् #}
-                                        {% for product in cat.product_set.all|slice:":10" %}
+                                        {% for product in cat.product_set.all %}
                                             {% ifchanged product.brand %} {# एउटै ब्रान्ड नाम दोहोरिन नदिन #}
                                                 {% if product.brand %}
                                                     <li><a href="{% url 'category_products' cat.id %}?q={{ product.brand }}">{{ product.brand }}</a></li>

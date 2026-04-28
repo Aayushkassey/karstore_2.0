@@ -29,6 +29,7 @@
         {% endif %}
 
         {# 2. POPULAR DISCOVERY #}
+    {% if highly_searched %}
         <div class="section-header">
             <h2>🔥 Popular Discovery</h2>
         </div> 
@@ -38,7 +39,8 @@
             {% endfor %}
         </div>
         <hr class="section-divider">
-    {% endif %} {# <--- यो 'endif' छुटेको थियो, जसले गर्दा एरर आउन सक्थ्यो वा लेआउट बिग्रिन्थ्यो #}
+        {% endif %}
+    {% endif %} 
 
     {# यो हेडिङ र प्रोडक्ट लिस्ट चाहिँ जहिले पनि देखिन्छ #}
     <div class="section-header" id="all-products">

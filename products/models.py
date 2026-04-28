@@ -1,5 +1,8 @@
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from accounts.models import Interest 
 
 
 class Category(models.Model):
@@ -34,7 +37,6 @@ class Product(models.Model):
 
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    is_whistle = models.BooleanField(default=False)
     total_sales = models.IntegerField(default=0)
 
     # ProductTable बाट ल्याइएका नयाँ फिल्डहरू
@@ -84,3 +86,12 @@ class Product(models.Model):
     
     class Meta:
         verbose_name_plural = "Products Table"
+
+@receiver(post_save, sender=Category)
+def sync_category_to_interest(sender, instance, created, **kwargs):
+    if created:
+        try:
+            
+            Interest.objects.get_or_create(name=instance.name)
+        except Exception as e:
+            print(f"Error syncing interest: {e}")

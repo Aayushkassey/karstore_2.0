@@ -10,6 +10,11 @@ from payment.models import Payment
 from orders.models import Order
 
 from .models import Product, Category
+
+from django.db.models import Exists, OuterRef, Value, BooleanField, Count
+
+from orders.models import Whistle
+
 from accounts.models import Interest, CustomerUser, CustomerActivity # Activity model import gareko
 
 # 1. Main Home View (Search + Random Discovery)
@@ -21,15 +26,29 @@ def home(request):
 
     query = request.GET.get('q', '').strip()
     all_categories = Category.objects.all()
-    highly_searched = Product.objects.all().order_by('?')[:10]
+    highly_searched = Product.objects.annotate(
+        num_sales=Count('order')
+    ).order_by('-num_sales')[:10]
+
+    # यदि अर्डर नै छैन भने (नयाँ साइटमा)
+    if not highly_searched.exists() or highly_searched[0].num_sales == 0:
+        highly_searched = Product.objects.all().order_by('?')[:10]
+
+    # २. Popular Discovery / Recommended (यसलाई पछि ML ले ह्यान्डल गर्छ)
+    # अहिलेलाई यो सेक्सनमा तिम्रो इन्ट्रेस्ट वाला लजिक वा सिम्पल रेकमेन्डेसन राख
     recommended_products = None
-    
-    # 2. Recommendation Logic (Only for Home - No Search)
     if not query and request.user.is_authenticated and request.user.role == 'CUSTOMER':
         if request.user.interests.exists():
             interest_names = request.user.interests.values_list('name', flat=True)
-            recommended_products = Product.objects.filter(category__name__in=interest_names).distinct().order_by('-id')[:10]
-
+            user_whistles_ref = Whistle.objects.filter(
+                user=request.user, 
+                product=OuterRef('pk')
+            )
+            recommended_products = Product.objects.filter(
+                category__name__in=interest_names
+                ).annotate(
+                    is_whistle=Exists(user_whistles_ref)
+                ).distinct().order_by('-id')[:10]
     # 3. Main Product List (Search or Featured)
     if query:
         words = query.split()
@@ -37,7 +56,7 @@ def home(request):
         for word in words:
             search_filter |= Q(name__icontains=word) | Q(description__icontains=word) | Q(category__name__icontains=word)
         
-        product_list = Product.objects.filter(search_filter).distinct().order_by('-id')
+        base_query = Product.objects.filter(search_filter).distinct().order_by('-id')
         message = f"Search Results for '{query}'"
         
         # Log Activity
@@ -45,8 +64,24 @@ def home(request):
             CustomerActivity.objects.create(user=request.user, action="search", extra_info=f"Searched for: {query}")
     else:
         # Normal Featured Products
-        product_list = Product.objects.all().order_by('-id')
+        base_query = Product.objects.all().order_by('-id')
         message = "Featured Products"
+
+    # --- 4. Private Wishlist Annotation (The Secret Sauce) ---
+    # यसले गर्दा मात्र Customer A को मुटु Customer B कोमा रातो देखिँदैन
+    if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+        user_whistles = Whistle.objects.filter(
+            user=request.user, 
+            product=OuterRef('pk')
+        )
+        product_list = base_query.annotate(
+            is_whistle=Exists(user_whistles)
+        ).order_by('-id')
+    else:
+        # गेस्ट वा सेलरका लागि सबै मुटु सेतो (False) बनाउने
+        product_list = base_query.annotate(
+            is_whistle=Value(False, output_field=BooleanField())
+        ).order_by('-id')
 
     # 4. Pagination
     paginator = Paginator(product_list, 15)
@@ -84,7 +119,14 @@ def category_products(request, id):
     category = get_object_or_404(Category, id=id)
     all_categories = Category.objects.all() 
 
-    product_list = Product.objects.filter(category=category).order_by('-id')
+    base_query = Product.objects.filter(category=category)
+
+
+    if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+        user_whistles = Whistle.objects.filter(user=request.user, product=OuterRef('pk'))
+        product_list = base_query.annotate(is_whistle=Exists(user_whistles)).order_by('-id')
+    else:
+        product_list = base_query.annotate(is_whistle=Value(False, output_field=BooleanField())).order_by('-id')
     
     # --- ACTIVITY LOG: View Category ---
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
@@ -155,6 +197,7 @@ def add_product(request):
         price = request.POST.get("price")
         description = request.POST.get("description")
         category_id = request.POST.get("category")
+        new_category_name = request.POST.get("new_category_name")
         image = request.FILES.get("image")
         brand = request.POST.get("brand")
         stock = request.POST.get("stock")
@@ -167,12 +210,21 @@ def add_product(request):
         discount_perc = float(discount_val) if discount_val and discount_val.strip() != "" else 0.0
 
         try:
-            category_obj = Category.objects.get(id=category_id)
+        
+            if category_id == 'new_category' and new_category_name:
+        
+                category_obj, created = Category.objects.get_or_create(name=new_category_name)
+
+                from accounts.models import Interest
+                Interest.objects.get_or_create(name=new_category_name)
+            else:
+                
+                category_obj = Category.objects.get(id=category_id)
             Product.objects.create(
                 seller=request.user,
                 name=name,
                 price=float(price) if price else 0.0,
-                discount_percentage=discount_perc, # अब यहाँ ट्याक्क भ्यालु बस्छ
+                discount_percentage=discount_perc, 
                 brand=brand,
                 stock=int(stock) if stock else 0,
                 description=description,
@@ -206,7 +258,18 @@ def edit_product(request, product_id):
         product.discount_percentage = float(discount_val) if discount_val else 0
         
         category_id = request.POST.get("category")
-        if category_id:
+        new_category_name = request.POST.get("new_category_name")
+
+        if category_id == 'new_category' and new_category_name:
+            # नयाँ क्याटेगोरी बनाएर असाइन गर्ने
+            category_obj, created = Category.objects.get_or_create(name=new_category_name)
+
+            from accounts.models import Interest
+            Interest.objects.get_or_create(name=new_category_name)
+
+            product.category = category_obj
+        elif category_id:
+            # पुरानै क्याटेगोरी आईडीबाट तान्ने
             product.category = get_object_or_404(Category, id=category_id)
         
         if request.FILES.get("image"):
