@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.core.files.base import ContentFile
 from django.db.models import Q
 import requests
-
+from django.contrib import messages
 from payment.models import Payment
 from orders.models import Order
 
@@ -14,35 +14,41 @@ from accounts.models import Interest, CustomerUser, CustomerActivity # Activity 
 
 # 1. Main Home View (Search + Random Discovery)
 def home(request):
+    # 1. Basic redirections
+    if request.user.is_authenticated and not (request.user.is_superuser or request.user.is_staff or request.user.role == 'SELLER'):
+        if request.user.role == 'CUSTOMER' and not request.user.interests.exists() and not request.session.get('skipped_interests', False):
+            return redirect('select_interest')
+
     query = request.GET.get('q', '').strip()
     all_categories = Category.objects.all()
+    highly_searched = Product.objects.all().order_by('?')[:10]
+    recommended_products = None
     
-    # Highly Searched Section: Random 10 items discovery
-    highly_searched = Product.objects.all().order_by('?')[:10] 
+    # 2. Recommendation Logic (Only for Home - No Search)
+    if not query and request.user.is_authenticated and request.user.role == 'CUSTOMER':
+        if request.user.interests.exists():
+            interest_names = request.user.interests.values_list('name', flat=True)
+            recommended_products = Product.objects.filter(category__name__in=interest_names).distinct().order_by('-id')[:10]
 
+    # 3. Main Product List (Search or Featured)
     if query:
-        # SMART SEARCH logic
         words = query.split()
         search_filter = Q()
         for word in words:
-            search_filter |= Q(name__icontains=word) | \
-                            Q(description__icontains=word) | \
-                            Q(category__name__icontains=word)
+            search_filter |= Q(name__icontains=word) | Q(description__icontains=word) | Q(category__name__icontains=word)
         
         product_list = Product.objects.filter(search_filter).distinct().order_by('-id')
         message = f"Search Results for '{query}'"
         
-        # --- ACTIVITY LOG: Search ---
-        if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
-            CustomerActivity.objects.create(user=request.user, 
-                action=f"Search: {query}", # Kun word search garyo tyo track hunchha
-                product=None # Search ma product specific activity log gardaina, tesaile None pathaune
-            )
-            
+        # Log Activity
+        if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+            CustomerActivity.objects.create(user=request.user, action="search", extra_info=f"Searched for: {query}")
     else:
+        # Normal Featured Products
         product_list = Product.objects.all().order_by('-id')
         message = "Featured Products"
 
+    # 4. Pagination
     paginator = Paginator(product_list, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -52,12 +58,12 @@ def home(request):
 
     return render(request, 'pages/home.html', {
         'page_obj': page_obj,
-        'categories': all_categories,
+        'recommended_products': recommended_products,
         'highly_searched': highly_searched,
+        'categories': all_categories,
         'query': query,
         'message': message
     })
-
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -82,12 +88,13 @@ def category_products(request, id):
     
     # --- ACTIVITY LOG: View Category ---
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
-        CustomerActivity.objects.create(user=request.user, action='view_category')
+        CustomerActivity.objects.create(user=request.user, action='view_category', extra_info=f"Category: {category.name}")
 
     paginator = Paginator(product_list, 15)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+
         return render(request, 'components/product_list_ajax.html', {'page_obj': page_obj})
 
     return render(request, 'pages/home.html', {
@@ -149,25 +156,81 @@ def add_product(request):
         description = request.POST.get("description")
         category_id = request.POST.get("category")
         image = request.FILES.get("image")
+        brand = request.POST.get("brand")
+        stock = request.POST.get("stock")
+        sku = request.POST.get("sku")
+        
+        # ✅ 'discountage_price' लाई फेरेर 'discount_percentage' राखियो
+        # जुन तिम्रो HTML को input field को 'name' सँग मिल्नुपर्छ
+        discount_val = request.POST.get("discount_percentage") 
+        
+        discount_perc = float(discount_val) if discount_val and discount_val.strip() != "" else 0.0
 
         try:
             category_obj = Category.objects.get(id=category_id)
             Product.objects.create(
                 seller=request.user,
                 name=name,
-                price=price,
+                price=float(price) if price else 0.0,
+                discount_percentage=discount_perc, # अब यहाँ ट्याक्क भ्यालु बस्छ
+                brand=brand,
+                stock=int(stock) if stock else 0,
                 description=description,
                 category=category_obj,
-                image=image
+                image=image,
+                sku=sku
             )
+            messages.success(request, "Product added successfully!")
             return redirect('dashboard')
-        except Category.DoesNotExist:
-            return render(request, 'pages/add_product.html', {
-                'categories': categories, 
-                'error': 'Invalid Category selected'
-            })
+        except (Category.DoesNotExist, ValueError):
+            messages.error(request, "Data is invalid. Please check your inputs.")
+            return render(request, 'pages/add_product.html', {'categories': categories})
 
     return render(request, 'pages/add_product.html', {'categories': categories})
+
+
+@login_required
+def edit_product(request, product_id):
+    product = get_object_or_404(Product, pk=product_id, seller=request.user)
+    categories = Category.objects.all()
+
+    if request.method == 'POST':
+        product.name = request.POST.get("name")
+        product.brand = request.POST.get("brand")
+        product.description = request.POST.get("description")
+        product.sku = request.POST.get("sku") 
+        product.price = float(request.POST.get("price") or 0)
+        product.stock = int(request.POST.get("stock") or 0)
+        
+        discount_val = request.POST.get("discount_percentage")
+        product.discount_percentage = float(discount_val) if discount_val else 0
+        
+        category_id = request.POST.get("category")
+        if category_id:
+            product.category = get_object_or_404(Category, id=category_id)
+        
+        if request.FILES.get("image"):
+            product.image = request.FILES.get("image")
+            
+        product.save()
+        messages.success(request, f"Product '{product.name}' updated successfully!")
+        return redirect('dashboard')
+
+    return render(request, 'pages/edit_product.html', {'product': product, 'categories': categories})
+
+
+@login_required
+def delete_product(request, product_id):
+    # सुरक्षाको लागि आफ्नो प्रोडक्ट हो कि हैन चेक गर्ने
+    product = get_object_or_404(Product, pk=product_id, seller=request.user)
+    
+    if request.method == 'POST':
+        product_name = product.name
+        product.delete()
+        messages.warning(request, f"Product '{product_name}' deleted successfully.")
+        return redirect('dashboard')
+        
+    return render(request, 'pages/confirm_delete.html', {'product': product})
 
 # 6. Search Suggestions API
 def search_suggestions(request):
@@ -185,37 +248,64 @@ def search_suggestions(request):
     return JsonResponse([], safe=False)
 
 # 7. Dummy Data Seeding
+
 def seed_dummy_json_inventory(request):
     base_url = "https://dummyjson.com/products"
     headers = {"User-Agent": "Mozilla/5.0"}
+    
+    # १. डिफल्ट सेलर छान्ने (Superuser वा पहिलो युजर)
     seller = CustomerUser.objects.filter(is_superuser=True).first() or CustomerUser.objects.first()
     
+    if not seller:
+        return HttpResponse("Error: No user found in database to assign as seller.")
+
     try:
         total_added = 0
+        # २०० वटा सम्म डेटा तान्ने
         prod_response = requests.get(f"{base_url}?limit=200", headers=headers, timeout=15)
         products_data = prod_response.json().get('products', [])
 
         for item in products_data:
-            cat_name = item.get('category', 'General').replace("-", " ").capitalize()
+            # २. क्याटगोरी र इन्ट्रेस्ट मिलाउने
+            raw_cat = item.get('category', 'General')
+            cat_name = raw_cat.replace("-", " ").capitalize()
             category_obj, _ = Category.objects.get_or_create(name=cat_name)
             Interest.objects.get_or_create(name=cat_name)
 
+            # ३. यदि प्रोडक्ट पहिले नै छैन भने मात्र थप्ने
             if not Product.objects.filter(name=item['title']).exists():
                 p = Product(
                     name=item['title'],
-                    price = round(item['price'] * 130, 2),
+                    price=round(item['price'] * 130, 2), # USD to NPR
                     description=item.get('description', ''),
                     category=category_obj,
                     seller=seller,
+                    
+                    # --- नयाँ फिल्डहरू अटोमेटिक भर्ने ---
+                    rating=item.get('rating', 0.0),
+                    stock=item.get('stock', 0),
+                    brand=item.get('brand', ''),
+                    sku=item.get('sku', ''),
+                    discount_percentage=item.get('discountPercentage', 0.0),
+                    
+                    # सिधै URL प्रयोग गर्ने (डाउनलोड गर्नु परेन)
+                    image_url=item.get('thumbnail') 
                 )
-                img_url = item.get('thumbnail')
-                if img_url:
-                    try:
-                        img_temp = requests.get(img_url, timeout=5).content
-                        p.image.save(f"dummy_{item['id']}.jpg", ContentFile(img_temp), save=False)
-                    except: pass
+                
+                # नोट: यदि कसैलाई पुरानो तरिकाले इमेज डाउनलोड नै गर्नु छ भने मात्र यो चाहिन्छ:
+                # तर अहिले हामीले image_url प्रयोग गरेका छौँ जुन धेरै फास्ट हुन्छ।
+                
                 p.save()
                 total_added += 1
-        return HttpResponse(f"<h1>Success!</h1><p>Added {total_added} products.</p>")
+                
+        return HttpResponse(f"""
+            <div style="font-family: sans-serif; padding: 20px; border: 2px solid #f85606; border-radius: 10px; width: fit-content;">
+                <h1 style="color: #f85606;">✅ Success!</h1>
+                <p style="font-size: 18px;">Added <strong>{total_added}</strong> new products.</p>
+                <p>Ratings, Stock, and External Image URLs are now synced.</p>
+                <a href="/" style="color: #2196F3;">Go to Home</a>
+            </div>
+        """)
+
     except Exception as e:
-        return HttpResponse(f"Error: {e}")
+        return HttpResponse(f"<h1 style='color:red;'>Error occurred</h1><p>{str(e)}</p>")

@@ -49,6 +49,7 @@ EXTERNAL_APPS = [
     'payment',
 ]
 INSTALLED_APPS += EXTERNAL_APPS
+INSTALLED_APPS += ['django_cleanup.apps.CleanupConfig']
 
 AUTH_USER_MODEL = 'accounts.CustomerUser'
 
@@ -145,3 +146,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = 'login'
+
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'karstoreinfo@gmail.com'
+EMAIL_HOST_PASSWORD = 'rjme pewj bczw gkck' 
+DEFAULT_FROM_EMAIL = 'KAR Store <karstoreinfo@gmail.com>'

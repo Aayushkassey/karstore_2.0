@@ -1,0 +1,135 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .delete-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fdfdfd;
+        padding: 20px;
+    }
+
+    .delete-card {
+        max-width: 450px;
+        width: 100%;
+        background: #fff;
+        border-radius: 25px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        padding: 40px;
+        text-align: center;
+        border: 1px solid #eee;
+    }
+
+    .warning-icon {
+        background: #fff5f5;
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        border-radius: 50%;
+        font-size: 40px;
+        margin: 0 auto 25px auto;
+        color: #e53e3e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-title {
+        font-weight: 800;
+        color: #222;
+        margin-bottom: 15px;
+        font-size: 24px;
+    }
+
+    .delete-text {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .product-name-badge {
+        background: #f8f9fa;
+        padding: 5px 12px;
+        border-radius: 8px;
+        color: #333;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 5px;
+    }
+
+    .btn-group-custom {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn-cancel {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        background: #f1f3f5;
+        color: #495057;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.3s;
+        border: none;
+    }
+
+    .btn-cancel:hover {
+        background: #e9ecef;
+        color: #212529;
+    }
+
+    .btn-delete-final {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        background: #e53e3e;
+        color: white;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-delete-final:hover {
+        background: #c53030;
+        box-shadow: 0 8px 15px rgba(229, 62, 62, 0.2);
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="delete-wrapper">
+    <div class="delete-card">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i> ⚠️
+        </div>
+        
+        <h2 class="delete-title">Are you sure?</h2>
+        
+        <div class="delete-text">
+            You are about to permanently delete:<br>
+            <span class="product-name-badge">{{ product.name }}</span>
+            <p style="margin-top: 15px; font-size: 13px; color: #999;">
+                This action cannot be undone and the product will be removed from the store listings.
+            </p>
+        </div>
+
+        <div class="btn-group-custom">
+            <a href="{% url 'dashboard' %}" class="btn-cancel">
+                No, Keep it
+            </a>
+            
+            <form method="POST" style="flex: 1;">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete-final">
+                    Yes, Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

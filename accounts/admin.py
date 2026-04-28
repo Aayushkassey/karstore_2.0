@@ -4,19 +4,27 @@ from payment.models import Payment
 # Register your models here.
 
 class CustomerActivityAdmin(admin.ModelAdmin):
-    list_display = ('user', 'action', 'product_id', 'timestamp', 'transaction_id')
+    list_display = ('user', 'display_action', 'product_id', 'timestamp', 'transaction_id')
     list_filter = ('action', 'timestamp')
     search_fields = ('user__username', 'action', 'transaction_id')
 
-# Products ko lagi extra columns dekhauna (Optional but helpful)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'category', 'id')
-    search_fields = ('name',)
 
-admin.site.register(CustomerUser)
+
+class CustomerUserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'role', 'gender', 'display_interests','age')
+    list_filter = ('role', 'gender')
+    search_fields = ('username', 'email')
+
+    def display_interests(self, obj):
+        return ", ".join([interest.name for interest in obj.interests.all()])
+
+
+
 admin.site.register(Interest)
 admin.site.register(CustomerActivity, CustomerActivityAdmin)
 admin.site.register(Payment)
+admin.site.register(CustomerUser, CustomerUserAdmin)
+
 
 
 admin.site.site_header = "KarStore Admin"

@@ -43,24 +43,44 @@ def login(request):
     return render(request, 'pages/login.html')
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == 'POST':
         u_name = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
         role = request.POST.get("role", "CUSTOMER")
+        gender = request.POST.get("gender")
+        age = request.POST.get("age")
 
-        if CustomerUser.objects.filter(username=u_name).exists():
-            return render(request, 'pages/register.html', {"error": "Username taken."})
+        # सर्भर साइड भ्यालिडेसन (सुरक्षाको लागि)
+        if CustomerUser.objects.filter(username__iexact=u_name).exists():
+            return render(request, 'pages/register.html', {"error": "Username already taken."})
+        
+        if CustomerUser.objects.filter(email__iexact=email).exists():
+            return render(request, 'pages/register.html', {"error": "Email already registered."})
 
-        CustomerUser.objects.create(
+        # १. युजर बनाउने
+        user = CustomerUser.objects.create(
             username=u_name,
             email=email,
             password=make_password(password),
-            role=role
+            role=role,
+            gender=gender,
+            age=age
         )
-        return redirect('login')
-    return render(request, 'pages/register.html')
 
+        # २. लगइन गराउने
+        auth_login(request, user)
+
+        # ३. Role अनुसार सही ठाउँमा पठाउने
+        if user.role == 'SELLER':
+            return redirect('dashboard') # सेलरलाई इन्ट्रेस्ट पेज चाहिदैन
+        else:
+            return redirect('select_interest')
+
+    return render(request, 'pages/register.html')
 @login_required
 def logout_view(request):
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
@@ -82,8 +102,9 @@ def select_interest(request):
     return render(request, "pages/select_interest.html", {"interests": interests})
 
 def skip_interests(request):
-    """Terminal error fix garna ko lagi, aba yo URL ma hit garda pani home ma jancha."""
+    request.session['skipped_interests'] = True
     return redirect('home')
+    
 
 # AJAX Validation Utils
 def check_username(request):

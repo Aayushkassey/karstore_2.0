@@ -3,46 +3,49 @@
     <header class="top-header">
         <div class="nav-logo">
             <a href="{% url 'home' %}">
-                <img src="{% static 'image/logo.png' %}" alt="KAR Store">
+                <img src="{% static 'image/logo.png' %}" alt="KAR Store" class="main-brand-logo">
             </a>
         </div>
+        {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' %}
 
         <div class="nav-search">
+            
             <form method="GET" action="{% url 'home' %}">
                 <input type="text" name="q" placeholder="Search for Products, Categories..." 
-                       autocomplete="off" value="{{ query|default:'' }}">
+                autocomplete="off" value="{{ query|default:'' }}">
                 <button type="submit">🔍</button>
             </form>
             <div id="suggestion-box" class="suggestion-container"></div>
         </div>
 
+        
+{% endif %}
         <div class="nav-utilities">
             {% if user.is_authenticated %}
                 {% if user.role == 'CUSTOMER' and not user.is_staff and not user.role == 'SELLER' %}
                     <a href="{% url 'cart_detail' %}" class="cart-link" style="text-decoration: none; color: inherit;">
-                        🛒 Cart <strong id="cart-count">({{ request.user.cart.items.count|default:0 }})</strong>
-                    </a>
+    🛒 Cart (<strong id="cart-count">{{ request.user.cart.items.count|default:0 }}</strong>)
+</a>
                     <a href="{% url 'whistles' %}" class="auth-link">Whistles</a>
                 {% endif %}
-                <a href="{% url 'orders' %}" class="auth-link">Orders</a>
-                <a href="{% url 'products' %}" class="auth-link">Products</a>
-
+                {% comment %} <a href="{% url 'products' %}" class="auth-link">Products</a> {% endcomment %}
+                
                 <div class="profile-dropdown">
                     <div class="profile-trigger" onclick="toggleUserDropdown()">
                         <img src="{% static 'image/account.png' %}" alt="Profile" class="user-logo-img">
                     </div>
                     
                     <ul class="dropdown-menu" id="userMenu">
-                        <li class="user-name-header">Hi, {{ user.username }}</li>
+                        <li class="user-name-header" style="padding: 10px 15px; font-weight: bold; font-size: 14px;">Hi, {{ user.username }}</li>
                         <hr>
-                        
                         {% if user.role == 'SELLER' %}
-                            <li><a href="{% url 'dashboard' %}" style="color:#f85606; font-weight: bold;">Seller Dashboard</a></li>
+                        <li><a href="{% url 'dashboard' %}" style="color:#f85606; font-weight: bold; padding: 8px 15px; display: block; text-decoration: none;">Seller Dashboard</a></li>
                         {% endif %}
-
-                        <li><a href="{% url 'account:update_profile' %}">Edit Profile</a></li> 
+                        <li><a href="{% url 'orders' %}" style="padding: 8px 15px; display: block; text-decoration: none;">Orders</a></li>
                         <hr>
-                        <li><a href="{% url 'logout' %}" class="logout-btn">Logout</a></li>
+                        <li><a href="{% url 'account:view_profile' %}" style="padding: 8px 15px; display: block; text-decoration: none; color: #333;">Your Profile</a></li> 
+                        <hr>
+                        <li><a href="{% url 'logout' %}" class="logout-btn" style="padding: 8px 15px; display: block; text-decoration: none; color: red;">Logout</a></li>
                     </ul>
                 </div>
 
@@ -56,6 +59,9 @@
     {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' %}
     <nav class="category-strip">
         <div class="mega-menu-container">
+            <div class="nav-addon-info">
+                <a href="{% url 'products' %}" style="color: #ffffff; font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; border-right:3px solid var(--primary-orange); padding-right: 10px;"> ALL PRODUCTS</a>
+            </div>
             <div class="scroll-wrapper">
                 <ul class="dynamic-category-list">
                     {% for cat in categories %}
@@ -64,29 +70,54 @@
                         
                         <div class="mega-products-dropdown">
                             <div class="mega-inner-content">
-                                <p class="mega-title">Trending in {{ cat.name }}</p>
-                                <div class="mini-product-grid">
-                                    {% for product in cat.product_set.all|slice:":4" %}
-                                    <div class="mini-card">
-                                        <div class="mini-img">
-                                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/default.png' %}{% endif %}" alt="{{ product.name }}">
-                                        </div>
-                                        <div class="mini-info">
-                                            <h6>{{ product.name|truncatechars:18 }}</h6>
-                                            <span class="mini-price">Rs. {{ product.price|floatformat:0 }}</span>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
+                                
+                                <div class="mega-sidebar">
+                                    <p class="mega-title">Available Brands</p>
+                                    <ul class="brand-list">
+                                        {# यहाँ ब्रान्डको नाम लुप गर्ने - Slice 8 सम्म मात्र ताकि मेनु धेरै लामो नहोस् #}
+                                        {% for product in cat.product_set.all|slice:":10" %}
+                                            {% ifchanged product.brand %} {# एउटै ब्रान्ड नाम दोहोरिन नदिन #}
+                                                {% if product.brand %}
+                                                    <li><a href="{% url 'category_products' cat.id %}?q={{ product.brand }}">{{ product.brand }}</a></li>
+                                                {% endif %}
+                                            {% endifchanged %}
+                                        {% empty %}
+                                            <li><a href="#">Exclusive Store</a></li>
+                                            <li><a href="#">Best Deals</a></li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
-                                <a href="{% url 'category_products' cat.id %}" class="see-more">View All {{ cat.name }} Items →</a>
+
+                                <div class="mega-main-grid">
+                                    <p class="mega-title">Trending in {{ cat.name }}</p>
+                                    <div class="mini-product-grid">
+                                        {% for product in cat.product_set.all|slice:":4" %}
+                                        <div class="mini-card">
+                                            <div class="mini-img">
+                                                <img src="{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% else %}{% static 'image/default.png' %}{% endif %}" 
+                                                     alt="{{ product.name }}">
+                                            </div>
+                                            <div class="mini-info">
+                                                <h6>{{ product.name|truncatechars:18 }}</h6>
+                                                <span class="mini-price">Rs. {{ product.price|floatformat:0 }}</span>
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <p style="font-size: 12px; color: #999;">New arrivals coming soon!</p>
+                                        {% endfor %}
+                                    </div>
+                                    <a href="{% url 'category_products' cat.id %}" class="see-more">Explore All {{ cat.name }} Items →</a>
+                                </div>
+
                             </div>
                         </div>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
+            
             <div class="nav-addon-info">
-                <span style="color: #ffffff; font-weight: 500; font-size: 15px;">⚡ Flash Sale</span>
+                <span style="color: #ffffff; font-weight: 700; font-size: 14px; white-space: nowrap; border-left:3px solid var(--primary-orange); padding-left: 10px;"> FLASH SALE</span>
             </div>
         </div>
     </nav>
@@ -94,83 +125,20 @@
 </div>
 
 <script>
-function toggleUserDropdown() {
-    const menu = document.getElementById("userMenu");
-    menu.classList.toggle("show-dropdown");
-}
-
-// Click outside garesi menu banda garna
-window.addEventListener('click', function(e) {
-    const dropdown = document.querySelector('.profile-dropdown');
-    const menu = document.getElementById("userMenu");
-    if (!dropdown.contains(e.target)) {
-        menu.classList.remove("show-dropdown");
+    // Profile Dropdown Toggle
+    function toggleUserDropdown() {
+        const menu = document.getElementById("userMenu");
+        if (menu) {
+            menu.classList.toggle("show-dropdown");
+        }
     }
-});
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(e) {
+        const dropdown = document.querySelector('.profile-dropdown');
+        const menu = document.getElementById("userMenu");
+        if (dropdown && menu && !dropdown.contains(e.target)) {
+            menu.classList.remove("show-dropdown");
+        }
+    });
 </script>
-
-<style>
-.profile-dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.profile-trigger {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 5px 10px;
-}
-
-.user-logo-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid #ffffff;
-    background: transparent;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background: white;
-    min-width: 180px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    border-radius: 8px;
-    z-index: 1000;
-    list-style: none;
-    padding: 10px 0;
-}
-
-.show-dropdown {
-    display: block !important;
-}
-
-.dropdown-menu li a {
-    padding: 10px 20px;
-    display: block;
-    color: #333;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.dropdown-menu li a:hover {
-    background: #f8f8f8;
-    color: #f85606;
-}
-
-.user-name-header {
-    padding: 5px 20px;
-    font-weight: bold;
-    color: #333;
-}
-
-.chevron-down {
-    font-size: 10px;
-    color: #666;
-}
-</style>

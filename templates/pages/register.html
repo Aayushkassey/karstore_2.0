@@ -2,39 +2,68 @@
 {% load static %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+<link rel="stylesheet" href="{% static 'css/register.css' %}">
 {% endblock %}
 
+
 {% block content %}
+
+{% block search-box %}{% endblock search-box %}
+
 <div class="auth-wrapper">
     <div class="auth-card">
         <h2>Create Account</h2>
-
+        
         {% if error %}
-            <div class="error_message">{{ error }}</div>
+            <div class="error_message" style="color: red; margin-bottom: 10px;">{{ error }}</div>
         {% endif %}
 
-        <form method="POST" class="auth-form">
+        <form method="POST" class="auth-form" id="regForm">
             {% csrf_token %}
             
-            <div class="input-group">
-                <input type="text" name="username" class="auth-field check-field" placeholder="Username" required>
-                <div class="msg-box"></div> 
+            <div class="form-step form-step-active" id="step-1">
+                <div class="input-group">
+                    <input type="text" name="username" id="username" class="auth-field check-field" placeholder="Username" required>
+                    <div class="msg-box"></div> 
+                </div>
+
+                <div class="input-group">
+                    <input type="email" name="email" id="email" class="auth-field check-field" placeholder="Email Address" required>
+                    <div class="msg-box"></div> 
+                </div>
+                <div class="input-group">
+                    <input type="password" name="password" class="auth-field" placeholder="Password" required autocomplete="new-password">
+                </div>
+                
+                <button type="button" class="auth-btn" id="nextBtn">Next</button>
             </div>
 
-            <div class="input-group">
-                <input type="email" name="email" class="auth-field check-field" placeholder="Email Address" required>
-                <div class="msg-box"></div>
-            </div>
+            <div class="form-step" id="step-2">
+                <div class="input-group">
+                    <select name="role" class="auth-field" id="role-select">
+                        <option value="CUSTOMER">Customer</option>
+                        <option value="SELLER">Seller</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <input type="number" name="age" class="auth-field" placeholder="Age" min="0">
+                </div>
+                
+                <div class="input-group">
+                    <select name="gender" class="auth-field" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
 
-            <input type="password" name="password" class="auth-field" placeholder="Password" required autocomplete="new-password">
-            
-            <select name="role" class="auth-field">
-                <option value="CUSTOMER">Customer</option>
-                <option value="SELLER">Seller</option>
-            </select>
-            
-            <button type="submit" class="auth-btn" id="regBtn">Register</button>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="auth-btn" id="prevBtn" style="background-color: #666;">Back</button>
+                    <button type="submit" class="auth-btn" id="regBtn">Register</button>
+                </div>
+            </div>
         </form>
 
         <div class="auth-footer">
@@ -44,36 +73,76 @@
 </div>
 
 <script>
-    const submitBtn = document.getElementById('regBtn');
-    
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+
+    // १. 'Next' बटन Logic
+    nextBtn.addEventListener('click', () => {
+        const u = document.getElementById('username').value;
+        const e = document.getElementById('email').value;
+
+        if (u && e) {
+            if (!nextBtn.disabled) {
+                step1.classList.remove('form-step-active');
+                step2.classList.add('form-step-active');
+            }
+        } else {
+            alert("कृपया सुरुमा युजरनेम र ईमेल भर्नुहोस्।");
+        }
+    });
+
+    // २. 'Back' बटन Logic
+    prevBtn.addEventListener('click', () => {
+        step2.classList.remove('form-step-active');
+        step1.classList.add('form-step-active');
+    });
+
+    // ३. AJAX: Username र Email Check
     document.querySelectorAll('.check-field').forEach(item => {
         item.addEventListener('input', function() {
             let val = this.value;
             let display = this.nextElementSibling; 
+            let fieldName = this.name; 
 
             if (val.length > 3) {
-                // Determine if we are checking username or email
-                let type = this.name === 'username' ? 'username' : 'email';
+                let url = (fieldName === 'username') ? '/check-username/' : '/check-email/';
                 
-                fetch(`/check-username/?value=${encodeURIComponent(val)}&type=${type}`)
+                fetch(`${url}?value=${encodeURIComponent(val)}`)
                     .then(response => response.text())
                     .then(data => {
                         display.innerHTML = data;
                         
-                        if (data.includes("Already")) {
-                            submitBtn.disabled = true;
-                            submitBtn.classList.add('btn-disabled');
+                        if (data.includes("Taken") || data.includes("Registered") || data.includes("!")) {
+                            nextBtn.disabled = true;
+                            nextBtn.classList.add('btn-disabled');
                         } else {
-                            submitBtn.disabled = false;
-                            submitBtn.classList.remove('btn-disabled');
+                            validateStepOne();
                         }
                     });
             } else {
                 display.innerHTML = "";
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('btn-disabled');
+                validateStepOne();
             }
         });
     });
+
+    function validateStepOne() {
+        const messages = document.querySelectorAll('.msg-box');
+        let errorFound = false;
+
+        messages.forEach(msg => {
+            // 'Taken' वा 'Registered' शब्द भएमा रोक्ने
+            if (msg.innerHTML.toLowerCase().includes("taken") || msg.innerHTML.toLowerCase().includes("registered")) {
+                errorFound = true;
+            }
+        });
+
+        if (!errorFound) {
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('btn-disabled');
+        }
+    }
 </script>
 {% endblock %}

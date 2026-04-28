@@ -5,33 +5,55 @@
 <link rel="stylesheet" href="{% static 'css/add_product.css' %}">
 
 <div class="add-product-container">
+    <h2>Add New Product</h2>
 
-<h2>Add Product</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-<form method="POST" enctype="multipart/form-data">
-{% csrf_token %}
+        <label>Product Name</label>
+        <input type="text" name="name" placeholder="Enter product name" required>
 
-<input type="text" name="name" placeholder="Product Name" required>
+        <div class="input-group-row">
+            <div class="input-field">
+                <label>Brand</label>
+                <input type="text" name="brand" placeholder="e.g. Samsung">
+            </div>
+            <div class="input-field">
+                <label>Category</label>
+                <select name="category" required>
+                    <option value="">Select Category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
 
-<input type="number" name="price" placeholder="Price" required>
+        <div class="input-group-row">
+            <div class="input-field">
+                <label>Original Price (Rs.)</label>
+                <input type="number" name="price" placeholder="0.00" required>
+            </div>
+            <div class="input-field">
+                <label>Discount Percentage (Optional)</label>
+                <input type="number" name="discount_percentage" placeholder="0.00"  min="0"  max="100" step="0.01">
+            </div>
+        </div>
 
-<textarea name="description" placeholder="Description"></textarea>
+        <label>Available Stock</label>
+        <input type="number" name="stock" value="1" min="1" required>
 
-<select name="category" required>
-<option value="">Select Category</option>
+        <label>SKU</label>
+        <input type="text" name="sku" placeholder="Enter SKU">
 
-{% for category in categories %}
-<option value="{{ category.id }}">{{ category.name }}</option>
-{% endfor %}
+        <label>Product Description</label>
+        <textarea name="description" placeholder="Write something about the product..."></textarea>
 
-</select>
+        <label>Product Image</label>
+        <input type="file" name="image" accept="image/*" required>
 
-<input type="file" name="image" required>
-
-<button type="submit">Add Product</button>
-
-</form>
-
+        <button type="submit">🚀 Add Product to Store</button>
+    </form>
 </div>
 
 {% endblock %}

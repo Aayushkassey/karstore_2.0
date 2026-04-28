@@ -1,107 +1,182 @@
 {% extends 'pages/base.html' %} 
 {% load static %} 
+
 {% block content %}
-<div
-  class="update-profile-wrapper"
-  style="background-color: #f4f4f4; padding: 50px 0; min-height: 80vh"
->
-  <div
-    class="container"
-    style="
-      max-width: 600px;
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      margin: 0 auto;
-    "
-  >
+<div class="update-profile-wrapper" style="background-color: #f4f4f4; padding: 50px 0; min-height: 80vh">
+  <div class="container" style="max-width: 650px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin: 0 auto;">
+    
     <div class="form-header" style="text-align: center; margin-bottom: 30px">
       <h2 style="color: #333; font-weight: 700">Update Profile</h2>
       <p style="color: #777">Keep your information up to date</p>
     </div>
 
-    <form method="POST" class="profile-form">
-      {% csrf_token %} {% for field in form %}
-      <div class="form-group" style="margin-bottom: 20px">
-        <label
-          style="
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-          "
-        >
-          {{ field.label }}
-        </label>
-        {{ field }} {% if field.errors %}
-        <small style="color: #d9534f">{{ field.errors|first }}</small>
-        {% endif %}
+    {# १. यदि views.py बाट 'error' म्यासेज आयो भने यहाँ देखाउने #}
+    {% if error %}
+      <div style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: 600; border: 1px solid #f5c6cb;">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
       </div>
+    {% endif %}
+
+    <form method="POST" class="profile-form">
+      {% csrf_token %} 
+      
+      {% for field in form %}
+        <div class="form-group" style="margin-bottom: 25px">
+          
+          {# २. Gender र Email लाई देखिने तर फेर्न नमिल्ने बनाउने #}
+          {% if field.name == 'gender' or field.name == 'email' %}
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+              {{ field.label }} (Read-only)
+            </label>
+            <input type="text" value="{{ field.value|default:'' }}" disabled 
+                   style="background-color: #e9ecef; cursor: not-allowed; width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; color: #6c757d;">
+            
+            {# Hidden input ताकि डेटाबेसबाट पुरानो डेटा नहटोस् #}
+            <input type="hidden" name="{{ field.name }}" value="{{ field.value|default:'' }}">
+
+          {# ३. Interests को लागि चिप्स स्टाइल #}
+          {% elif field.name == 'interests' %}
+            <label style="display: block; margin-bottom: 12px; font-weight: 700; color: #444; font-size: 16px;">
+              {{ field.label }}
+            </label>
+            <div class="interests-grid">
+              {% for checkbox in field %}
+                <label class="interest-chip">
+                  {{ checkbox.tag }}
+                  <span class="chip-label">{{ checkbox.choice_label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+
+          {# ४. Username, Age र अरु फेर्न मिल्ने फिल्डहरू #}
+          {% else %}
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+              {{ field.label }}
+            </label>
+            {{ field }} 
+          {% endif %}
+
+          {% if field.errors %}
+            {% for err in field.errors %}
+              <small style="color: #d9534f; display: block; margin-top: 5px; font-weight: 600;">
+                {{ err }}
+              </small>
+            {% endfor %}
+          {% endif %}
+        </div>
       {% endfor %}
 
       <div class="button-group" style="margin-top: 30px">
-        <button
-          type="submit"
-          style="
-            width: 100%;
-            background-color: #f85606;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-          "
-        >
-          Save Changes
-        </button>
-
-        <a
-          href="{% url 'home' %}"
-          style="
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            text-decoration: none;
-            color: #666;
-            font-size: 14px;
-          "
-        >
-          Cancel and Go Back
-        </a>
+        <button type="submit" class="save-btn">Save Changes</button>
+        <a href="{% url 'home' %}" class="cancel-link">Cancel and Go Back</a>
       </div>
     </form>
   </div>
 </div>
 
+
 <style>
-  /* Form fields lai professional look dina */
-  .profile-form input {
+  /* १. Interests Grid र Chip स्टाइल */
+  .interests-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #fdfdfd;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+  }
+
+  .interest-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 1.5px solid #ddd;
+    padding: 6px 14px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .interest-chip:hover {
+    border-color: #f85606;
+    background: #fff5f0;
+  }
+
+  /* चेकबक्स लुकाउने वा सानो बनाउने */
+  .interest-chip input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0;
+    accent-color: #f85606;
+    cursor: pointer;
+  }
+
+  .chip-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+  }
+
+  /* जब चेकबक्स चेक हुन्छ (Optional Look) */
+  .interest-chip:has(input:checked) {
+    border-color: #f85606;
+    background: #fff5f0;
+    box-shadow: 0 2px 6px rgba(248, 86, 6, 0.15);
+  }
+
+  /* २. साविकका इनपुट फिल्डहरू */
+  .profile-form input:not([type="checkbox"]), 
+  .profile-form select, 
+  .profile-form textarea {
     width: 100%;
-    padding: 12px;
+    padding: 12px 15px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 8px;
     box-sizing: border-box;
     font-size: 15px;
     outline: none;
+    transition: 0.3s;
   }
 
   .profile-form input:focus {
     border-color: #f85606;
-    box-shadow: 0 0 5px rgba(248, 86, 6, 0.2);
+    box-shadow: 0 0 8px rgba(248, 86, 6, 0.15);
   }
 
-  .profile-form input[readonly] {
-    background-color: #f9f9f9;
-    cursor: not-allowed;
+  /* ३. बटन र लिंकहरू */
+  .save-btn {
+    width: 100%;
+    background-color: #f85606;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .save-btn:hover {
+    background-color: #d44d05;
+    transform: translateY(-1px);
+  }
+
+  .cancel-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    text-decoration: none;
     color: #888;
+    font-size: 14px;
+    font-weight: 500;
   }
 
-  button:hover {
-    background-color: #d44d05 !important;
+  .cancel-link:hover {
+    color: #333;
   }
 </style>
 {% endblock %}

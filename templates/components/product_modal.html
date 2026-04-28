@@ -1,108 +1,598 @@
+<script src="https://unpkg.com/lucide@latest"></script>
+
 <style>
     #productModal {
         z-index: 100000 !important;
     }
-    .modal-content-container {
-        max-width: 750px !important; /* Size fixed for pop-up look */
-        width: 90%;
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        display: flex;
-        gap: 25px;
-        flex-wrap: wrap;
-        position: relative;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    }
-    #modalCartBtn {
-        z-index: 100001 !important;
-        cursor: pointer !important;
-        background: #f85606;
-        color: white;
-        border: none;
-        padding: 15px;
-        border-radius: 8px;
-        font-weight: 700;
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        transition: 0.3s;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        align-items: center;
+        justify-content: center;
     }
-    #modalCartBtn:hover { background: #d44a05; }
+
+    .modal-box {
+        display: flex;
+        flex-direction: column;
+        /* कोलम ताकि फुटर सधैं तल बस्छ */
+        width: 900px;
+        max-width: 95%;
+        max-height: 95vh;
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    /* माथिको मुख्य भाग (Image + Details) */
+    .modal-main-content {
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        min-height: 0;
+        /* Overflow handle गर्न */
+    }
+
+    .modal-left {
+        flex: 1;
+        padding: 35px;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #f0f0f0;
+        position: relative;
+    }
+
+    .modal-left img {
+        max-width: 100%;
+        max-height: 350px;
+        object-fit: contain;
+    }
+
+    .modal-wishlist {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: #fff;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        border: 1px solid #eee;
+        z-index: 10;
+    }
+
+    .modal-right {
+        flex: 1.1;
+        padding: 30px 35px;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        /* धेरै टेक्स्ट भएमा यसले मात्र स्क्रोल गर्छ */
+    }
+
+    .modal-right h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0 0 10px;
+        line-height: 1.4;
+    }
+
+    .modal-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        color: #888;
+    }
+
+    .modal-stars {
+        color: #ffa41c;
+        font-weight: 700;
+    }
+
+    .modal-price-area {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .modal-dprice {
+        color: #f85606;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .modal-rprice {
+        text-decoration: line-through;
+        color: #aaa;
+        font-size: 18px;
+    }
+
+    .modal-off-tag {
+        background: #fff1f0;
+        color: #f85606;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #ffd0c7;
+    }
+
+    .modal-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding: 12px;
+        background: #fafafa;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+    }
+
+    .info-item {
+        font-size: 12px;
+        color: #555;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .qty-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .qty-group {
+        display: flex;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .qty-group button {
+        padding: 8px 15px;
+        border: none;
+        background: #f5f5f5;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 700;
+        color: #f85606;
+    }
+
+    .qty-group input {
+        width: 45px;
+        text-align: center;
+        border: none;
+        border-left: 1.5px solid #ddd;
+        border-right: 1.5px solid #ddd;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .modal-btn-row {
+        display: flex;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 10px;
+    }
+
+    .btn-add-cart,
+    .btn-buy-now {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 12px;
+        cursor: pointer;
+        transition: 0.3s;
+        text-transform: uppercase;
+    }
+
+    .btn-add-cart {
+        border: 2px solid #f85606;
+        background: #fff;
+        color: #f85606;
+    }
+
+    .btn-buy-now {
+        background: #f85606;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-buy-now:hover {
+        background: #d44a05;
+    }
+
+    /* ✅ मुनिको फुटर फिचर्स स्टाइल (ठ्याक्कै फोटो जस्तै) */
+    .modal-footer-features {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: #fdfbf8;
+        padding: 20px 10px;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 10px;
+    }
+
+    .footer-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border-right: 1px solid #eee;
+    }
+
+    .footer-item:last-child {
+        border-right: none;
+    }
+
+    .orange-icon {
+        color: #f85606;
+        width: 28px;
+        height: 28px;
+        stroke-width: 1.5;
+    }
+
+    .footer-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .footer-text strong {
+        font-size: 11px;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .footer-text span {
+        font-size: 10px;
+        color: #888;
+    }
+
+    .modal-close-btn {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        cursor: pointer;
+        color: #bbb;
+        z-index: 100;
+    }
+
+    @media (max-width: 768px) {
+        .modal-main-content {
+            flex-direction: column;
+        }
+
+        .modal-left {
+            border-right: none;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-footer-features {
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .footer-item {
+            border-right: none;
+        }
+    }
 </style>
 
-<div id="productModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
-    <div class="modal-content-container">
-        <span onclick="closeModal()" style="position:absolute; top:10px; right:20px; font-size:30px; cursor:pointer; color:#888;">&times;</span>
-        
-        <div style="flex:1; min-width: 280px;">
-            <img id="modalImg" src="" alt="" style="width:100%; height:320px; object-fit:contain; background:#f9f9f9; border-radius:10px;">
+<div id="productModal" class="modal-overlay">
+    <div class="modal-box">
+        <span class="modal-close-btn" onclick="closeModal()">&times;</span>
+
+        <div class="modal-main-content">
+            <div class="modal-left">
+                <div class="modal-wishlist" 
+                {% if request.user.is_authenticated and  request.user.role == 'CUSTOMER' %}
+                    onclick="handleWhistleClick(event, currentModalProductId)" 
+                {% else %}
+                    style="opacity: 0.5; cursor: not-allowed; pointer-events: none; background: #eee;"
+                    title="Sellers cannot wishlist" 
+                {% endif %}>
+                    <span id="modalHeart" style="font-size:20px;">🤍</span>
+                </div>
+                <img id="modalImg" src="" alt="Product">
+            </div>
+
+            <div class="modal-right">
+                <h2 id="modalTitle"></h2>
+
+                <div class="modal-meta">
+                    <span class="modal-stars">⭐ <span id="modalRating"></span></span>
+                    <span style="color:#ddd;">|</span>
+                    <span id="modalCategoryMeta"
+                        style="color:#f85606; font-weight:700; text-transform:uppercase; font-size:10px;"></span>
+                    <span style="color:#ddd;">|</span>
+                    <span id="modalBrandMeta" style="color:#999;"></span>
+                </div>
+
+                <div class="modal-price-area">
+                    <span class="modal-dprice" id="modalDPrice"></span>
+                    <span class="modal-rprice" id="modalRPrice"></span>
+                    <span class="modal-off-tag" id="modalOffTag" style="display:none;"></span>
+                </div>
+
+                <p id="modalDesc"
+                    style="color:#666; font-size:13px; text-align:justify; line-height:1.7; margin-bottom:12px;"></p>
+
+                <div class="modal-info-grid">
+                    <div class="info-item">🏷️ <strong>Brand:</strong>&nbsp;<span id="modalBrandInfo"></span></div>
+                    <div class="info-item">📂 <strong>Category:</strong>&nbsp;<span id="modalCategoryInfo"></span></div>
+                    <div class="info-item">⭐ <strong>Rating:</strong>&nbsp;<span id="modalRatingInfo"></span></div>
+                    <div class="info-item">📦 <strong>Stock:</strong>&nbsp;<span id="modalStockInfo"></span></div>
+                </div>
+
+                <div class="qty-row">
+                    <span style="font-weight:700; font-size:13px; color:#333;">Quantity:</span>
+                    <div class="qty-group">
+                        <button onclick="updateModalQty(-1)">−</button>
+                        <input type="text" id="modalQty" value="1" readonly>
+                        <button onclick="updateModalQty(1)">+</button>
+                    </div>
+                    <span id="modalTotalPrice" style="font-size:13px; color:#f85606; font-weight:700;"></span>
+                </div>
+
+                <div class="modal-btn-row">
+                    <button class="btn-add-cart" onclick="sendToCartFromModal(event)">🛒 ADD TO CART</button>
+                    <button class="btn-buy-now" onclick="buyNowFromModal(event)"> BUY NOW</button>
+                </div>
+            </div>
         </div>
-        
-        <div style="flex:1; min-width: 280px; display: flex; flex-direction: column;">
-            <h2 id="modalTitle" style="color:#222; margin: 0 0 10px 0; font-size: 24px;"></h2>
-            <h3 id="modalPrice" style="color:#f85606; font-size:26px; margin: 10px 0;"></h3>
-            <p id="modalDesc" style="color:#666; font-size:14px; line-height:1.6; margin-bottom:20px; overflow-y: auto; max-height: 120px;"></p>
-            
-            <button id="modalCartBtn" onclick="sendToCartFromModal(event)">
-                ADD TO CART
-            </button>
+
+        <div class="modal-footer-features">
+            <div class="footer-item">
+                <i data-lucide="medal" class="orange-icon"></i>
+                <div class="footer-text">
+                    <strong>100% Authentic</strong>
+                    <span>Genuine Products</span>
+                </div>
+            </div>
+            <div class="footer-item">
+                <i data-lucide="shield-check" class="orange-icon"></i>
+                <div class="footer-text">
+                    <strong>Warranty</strong>
+                    <span>1 Year Warranty on most products</span>
+                </div>
+            </div>
+            <div class="footer-item">
+                <i data-lucide="undo-2" class="orange-icon"></i>
+                <div class="footer-text">
+                    <strong>Easy Returns</strong>
+                    <span>7 Days Return Policy</span>
+                </div>
+            </div>
+            <div class="footer-item" style="border: none;">
+                <i data-lucide="truck" class="orange-icon"></i>
+                <div class="footer-text">
+                    <strong>Free Shipping</strong>
+                    <span>On Orders Above Rs. 999</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<form id="checkoutForm" action="{% url 'payment:checkout_process' %}" method="POST" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="total_price" id="checkoutTotalPrice" value="">
+    <input type="hidden" name="single_product_id" id="checkoutSingleId" value="">
+    <input type="hidden" name="buy_now_qty" id="checkoutQty" value="">
+
+    <input type="hidden" name="is_single_checkout" value="true">
+</form>
+
 <script>
-let currentModalProductId = null;
+    // पेज लोड हुँदा र मोडल खोल्दा आइकन बनाउन
+    lucide.createIcons();
 
-function showProduct(event, name, img, price, desc, id) {
-    if (event) {
-        event.preventDefault(); 
-        event.stopPropagation();
-    }
-    document.getElementById('modalTitle').innerText = name;
-    document.getElementById('modalImg').src = img;
-    document.getElementById('modalPrice').innerText = "Rs. " + parseFloat(price).toFixed(2);
-    document.getElementById('modalDesc').innerText = desc;
-    currentModalProductId = id; 
+    let currentModalProductId = null;
+    let baseDiscountedPrice = 0;
+
+    function showProduct(e, name, img, discountedPrice, realPrice, desc, rating, brand, category, stock, id) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+
+        currentModalProductId = id;
+        baseDiscountedPrice = parseFloat(discountedPrice) || 0;
+
+        const userRole = "{{ request.user.role }}";
+        const isAuthenticated = "{{ request.user.is_authenticated }}" === "True";
     
-    document.getElementById('productModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden'; 
-}
+        const btnRow = document.querySelector('.modal-btn-row');
+        const qtyRow = document.querySelector('.qty-row');
 
-function closeModal() {
-    document.getElementById('productModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-function sendToCartFromModal(event) {
-    if (event) event.stopPropagation();
-    if (!currentModalProductId) return;
-
-    // Direct AJAX call from modal to ensure it works
-    fetch(`/orders/add-to-cart/${currentModalProductId}/`, {
-        method: 'POST',
-        headers: { 
-            'X-CSRFToken': '{{ csrf_token }}', 
-            'X-Requested-With': 'XMLHttpRequest' 
+        
+        if (isAuthenticated && userRole !== "CUSTOMER") {
+            if(btnRow) btnRow.style.display = "none";
+            if(qtyRow) qtyRow.style.display = "none";
+        } else {
+        
+            if(btnRow) btnRow.style.display = "flex";
+            if(qtyRow) qtyRow.style.display = "flex";
         }
-    })
-    .then(r => r.json())
-    .then(data => { 
-        if (data.status === 'success') {
-            alert("Added to cart!");
-            const cartElement = document.getElementById('cart-count');
-            if (cartElement) {
-                cartElement.innerText = `(${data.cart_count})`;
-            }
-            closeModal();
-        } else if (data.status === 'login_required') {
-            window.location.href = "{% url 'login' %}";
-        }
-    })
-    .catch(e => console.error("Error:", e));
-}
 
-// Background click to close
-window.onclick = function(event) {
-    let modal = document.getElementById('productModal');
-    if (event.target == modal) closeModal();
-};
+        document.getElementById('productModal').style.display = "flex";
+        document.body.style.overflow = "hidden";
+
+        document.getElementById('modalTitle').innerText = name;
+        document.getElementById('modalImg').src = img || '';
+        document.getElementById('modalDesc').innerText = desc || '';
+        document.getElementById('modalQty').value = 1;
+
+        // Rating
+        let r = parseFloat(rating) || 0;
+        document.getElementById('modalRating').innerText = r > 0 ? r : "N/A";
+        document.getElementById('modalRatingInfo').innerText = r > 0 ? r + " / 5" : "N/A";
+
+        // Brand & Category
+        document.getElementById('modalBrandMeta').innerText = brand ? "by " + brand : "";
+        document.getElementById('modalBrandInfo').innerText = brand || "-";
+        document.getElementById('modalCategoryMeta').innerText = category || "";
+        document.getElementById('modalCategoryInfo').innerText = category || "-";
+
+        // Stock
+        let stockNum = parseInt(stock) || 0;
+        document.getElementById('modalStockInfo').innerText = stockNum > 0 ? stockNum + " available" : "Out of Stock";
+
+        // Price
+        let rPrice = parseFloat(realPrice) || 0;
+        document.getElementById('modalDPrice').innerText = "Rs. " + baseDiscountedPrice.toLocaleString('en-NP', { maximumFractionDigits: 0 });
+        document.getElementById('modalTotalPrice').innerText = "";
+
+        if (rPrice > baseDiscountedPrice) {
+            let off = Math.round(((rPrice - baseDiscountedPrice) / rPrice) * 100);
+            document.getElementById('modalRPrice').innerText = "Rs. " + rPrice.toLocaleString('en-NP', { maximumFractionDigits: 0 });
+            document.getElementById('modalOffTag').innerText = off + "% OFF";
+            document.getElementById('modalOffTag').style.display = "inline-block";
+        } else {
+            document.getElementById('modalRPrice').innerText = "";
+            document.getElementById('modalOffTag').style.display = "none";
+        }
+
+        // Heart sync
+        const cardHeart = document.querySelector(`.heart-emoji-${id}`);
+        document.getElementById('modalHeart').innerText =
+            cardHeart && cardHeart.innerHTML.includes('❤️') ? '❤️' : '🤍';
+
+        document.getElementById('productModal').style.display = "flex";
+        document.body.style.overflow = "hidden";
+    }
+
+    function updateModalQty(val) {
+        let qtyInput = document.getElementById('modalQty');
+        let newVal = parseInt(qtyInput.value) + val;
+        if (newVal < 1) return;
+        qtyInput.value = newVal;
+
+        // ✅ Quantity change huda price update hunchha
+        let total = baseDiscountedPrice * newVal;
+        document.getElementById('modalDPrice').innerText = "Rs. " + total.toLocaleString('en-NP', { maximumFractionDigits: 0 });
+
+        if (newVal > 1) {
+            document.getElementById('modalTotalPrice').innerText = `(${newVal} × Rs. ${baseDiscountedPrice.toLocaleString('en-NP', { maximumFractionDigits: 0 })})`;
+        } else {
+            document.getElementById('modalTotalPrice').innerText = "";
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('productModal').style.display = "none";
+        document.body.style.overflow = "auto";
+    }
+
+    function handleWhistleClick(e, productId) {
+
+        if ("{{request.user.role}}" !== "CUSTOMER") return;
+
+        if (e) e.stopPropagation();
+        if (!productId) return;
+        fetch(`/orders/toggle-whistle/${productId}/`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('modalHeart').innerText = data.is_whistle ? '❤️' : '🤍';
+                    document.querySelectorAll(`.heart-emoji-${productId}`).forEach(h => {
+                        h.innerHTML = data.is_whistle ? '❤️' : '🤍';
+                    });
+                }
+            });
+    }
+
+    function sendToCartFromModal(e) {
+        if (e) e.stopPropagation();
+        if (!currentModalProductId) return;
+
+        const isAuthenticated = "{{ request.user.is_authenticated }}" === "True";
+        if (!isAuthenticated) {
+            window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
+            return;
+        }
+
+        let qty = document.getElementById('modalQty').value; // मोडलको भ्यालु तान्ने
+
+        fetch(`/orders/add-to-cart/${currentModalProductId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded', // अनिवार्य छ
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `quantity=${qty}` // ✅ ब्याकइन्डको request.POST.get('quantity') मा यो जान्छ
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`Added ${qty} items to cart! 🛒`);
+                    closeModal();
+                    location.reload(); // कार्ट काउन्ट अपडेट देखाउन पेज रिलोड गर्दा राम्रो
+                }
+            });
+    }
+
+    function buyNowFromModal(e) {
+        if (e) e.stopPropagation();
+        if (!currentModalProductId) return;
+
+        let qty = parseInt(document.getElementById('modalQty').value) || 1;
+        let total = baseDiscountedPrice * qty;
+
+        fetch(`/orders/add-to-cart/${currentModalProductId}/`, {
+            method: 'POST',
+            headers: {
+                // ✅ १. यो हेडर थप्नै पर्छ
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            // ✅ २. यो बडी थपेपछि मात्र ब्याकइन्डले ५ वटा सामान बुझ्छ
+            body: `quantity=${qty}`
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // ब्याकइन्डलाई चाहिने डेटा फर्ममा सेट गर्ने
+                    document.getElementById('checkoutTotalPrice').value = total;
+                    document.getElementById('checkoutQty').value = qty;
+                    document.getElementById('checkoutSingleId').value = currentModalProductId;
+
+                    // अब फर्म सबमिट गर्ने
+                    document.getElementById('checkoutForm').submit();
+                } else if (data.status === 'login_required') {
+                    window.location.href = "{% url 'login' %}";
+                }
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("Something went wrong while adding to cart!");
+            });
+    }
+
+    window.onclick = function (e) {
+        if (e.target == document.getElementById('productModal')) closeModal();
+    }
 </script>

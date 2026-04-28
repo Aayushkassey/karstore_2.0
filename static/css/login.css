@@ -94,3 +94,37 @@
     margin-bottom: 20px;
     border: 1px solid #f9d6d6;
 }
+
+/* Forgot Password Link */
+.forgot-password {
+    text-align: right;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #1f1f1f ;
+}
+
+.forgot-password a {
+    color: #f85606;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.form-footer a {
+    color: #f85606;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}

@@ -12,9 +12,16 @@ class CustomerUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='CUSTOMER')
     
     interests= models.ManyToManyField('Interest', blank=True)
+    gender = models.CharField(max_length=10, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
+   
+
 
     def __str__(self):
         return self.username
+    
+    class Meta:
+        verbose_name_plural = 'All Users'
     
 class Interest(models.Model):
     name = models.CharField(max_length=100)
@@ -35,13 +42,15 @@ class CustomerActivity(models.Model):
             ('delete_order', 'Delete Order'),
             ('search', 'Search'),
             ('add_to_cart', 'Add To Cart'),
+            ('reduce_cart_qty', 'Reduce Cart Quantity'),
             ('remove_from_cart', 'Remove From Cart'),
             ('checkout', 'Checkout'),
             ('purchase_success', 'Purchase Success'),
             ('purchase_failed', 'Purchase Failed'),
             ('update_profile', 'Update Profile'),
             ('view_whistles', 'View Whistles'),
-            ('toggle_whistle', 'Toggle Whistle'),
+            ('add_whistle', 'Add Whistle'),
+            ('remove_whistles', 'Remove Whistles'),
     ]
 
     user = models.ForeignKey(
@@ -50,6 +59,19 @@ class CustomerActivity(models.Model):
         db_column='user_id'
     )
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    
+    def display_action(self):
+        if self.action == 'search' and self.extra_info:
+            return self.extra_info # यसले "Search query: Ultima Watch" दिन्छ
+        if self.action == 'view_product' and self.product:
+            return f"Viewed Product: {self.product.name}"
+        if self.action == 'view_category' and self.extra_info:
+            return f"Viewed {self.extra_info}"
+        return self.get_action_display()
+
+    display_action.short_description = 'Action' # टेबलको हेडिङ 'Action' नै रहन्छ
+
+    extra_info = models.CharField(max_length=255,blank=True, null=True)
 
     product = models.ForeignKey(
         'products.Product',
@@ -65,3 +87,4 @@ class CustomerActivity(models.Model):
     
     class Meta:
         verbose_name_plural = 'Customer Activities'
+

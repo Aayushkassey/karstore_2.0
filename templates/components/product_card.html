@@ -1,88 +1,129 @@
 {% load static %}
 
 <div class="product-card" id="product-card-{{ product.id }}" 
-     style="background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden; transition: all 0.3s ease; display: flex; flex-direction: column; height: 100%; position: relative;">
+     style="background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden; transition: all 0.3s ease; display: flex; flex-direction: column; height: 100%; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
     
+    {% if product.discount_percentage > 0 %}
+    <div style="position: absolute; top: 12px; left: 12px; z-index: 10; background: #f85606; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; box-shadow: 0 2px 5px rgba(248, 86, 6, 0.4);">
+        {{ product.discount_percentage|floatformat:0 }}% OFF
+    </div>
+    {% endif %}
+
     <div class="img-wrapper" 
-         onclick="handleViewDetails(event, '{{ product.name|escapejs }}', '{% if product.image %}{{ product.image.url }}{% endif %}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.id }}')"
+         onclick="handleViewDetails(event, '{{ product.name|escapejs }}', '{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}', '{{ product.discounted_price|floatformat:2 }}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.rating }}', '{{ product.brand|escapejs }}', '{{ product.category.name|escapejs }}', '{{ product.stock }}', '{{ product.id }}')"
          style="position: relative; padding: 15px; background: #fff; height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
         
         <div class="whistle-indicator" 
-             onclick="handleWhistleClick(event, '{{ product.id }}')"
-             style="position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(255, 255, 255, 0.95); border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer;">
-            <span class="heart-emoji-{{ product.id }}" style="font-size: 20px; pointer-events: none;">
-                {% if product.is_whistle %}❤️{% else %}🤍{% endif %}
+            {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}
+                onclick="handleWhistleClick(event, '{{ product.id }}')"
+                style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(255, 255, 255, 0.95); border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; border: 1px solid #eee;"
+            {% else %}
+                style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(240, 240, 240, 0.8); border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: not-allowed; opacity: 0.6; pointer-events: none;"
+                title="Login as customer to wishlist"
+            {% endif %}>
+            
+            <span class="heart-emoji-{{ product.id }}" style="font-size: 20px; pointer-events: none; line-height: 1;">
+                {% if request.user.is_authenticated and request.user.role == 'CUSTOMER' %}
+                    {% if product.is_whistle %}❤️{% else %}🤍{% endif %}
+                    {% else %}
+                    🤍
+                {% endif %}
             </span>
         </div>
 
-        <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/logo.png' %}{% endif %}" 
+        <img src="{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% else %}{% static 'image/logo.png' %}{% endif %}" 
+             alt="{{ product.name }}"
              style="max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none;">
-        
-        <span style="position: absolute; bottom: 10px; left: 10px; background: #f85606; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;">
-            Rs. {{ product.price|floatformat:0 }}
-        </span>
+
+        <div style="position: absolute; bottom: 10px; left: 10px; display: flex; flex-direction: column; gap: 2px;">
+            <span style="background: #f85606; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 14px; font-weight: 700; box-shadow: 0 2px 5px rgba(248, 86, 6, 0.3);">
+                Rs. {{ product.discounted_price|floatformat:0 }}
+            </span>
+            {% if product.discount_percentage > 0 %}
+            <span style="color: #757575; text-decoration: line-through; font-size: 11px; font-weight: 600; padding-left: 5px; background: rgba(255,255,255,0.7); width: fit-content; border-radius: 3px;">
+                Rs. {{ product.price|floatformat:0 }}
+            </span>
+            {% endif %}
+        </div>
     </div>
 
     <div class="product-details" style="padding: 15px; flex-grow: 1; display: flex; flex-direction: column;">
-        <p style="font-size: 10px; color: #f85606; text-transform: uppercase; font-weight: 700; margin-bottom: 5px;">{{ product.category.name }}</p>
-        <h3 style="font-size: 14px; font-weight: 500; color: #333; margin: 0 0 15px; height: 40px; overflow: hidden;">{{ product.name|truncatechars:45 }}</h3>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <p style="font-size: 10px; color: #f85606; text-transform: uppercase; font-weight: 700; margin: 0;">
+                {{ product.category.name }}
+            </p>
+            {% if product.rating %}
+            <span style="font-size: 12px; color: #ffa41c; font-weight: 700; display: flex; align-items: center; gap: 2px;">
+                ⭐ {{ product.rating }}
+            </span>
+            {% endif %}
+        </div>
+
+        <h3 style="font-size: 14px; font-weight: 500; color: #333; margin: 0 0 10px; height: 40px; overflow: hidden; line-height: 1.4;">
+            {{ product.name|truncatechars:45 }}
+        </h3>
+
+        <div style="margin-bottom: 15px;">
+            {% if product.stock > 0 %}
+                <span style="font-size: 11px; color: #2e7d32; background: #e8f5e9; padding: 4px 8px; border-radius: 4px; font-weight: 600; display: inline-block;">
+                    In Stock: {{ product.stock }}
+                </span>
+            {% else %}
+                <span style="font-size: 11px; color: #d32f2f; background: #ffebee; padding: 4px 8px; border-radius: 4px; font-weight: 600; display: inline-block;">
+                    Out of Stock
+                </span>
+            {% endif %}
+        </div>
 
         <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
             <button type="button" 
-                    onclick="handleViewDetails(event, '{{ product.name|escapejs }}', '{% if product.image %}{{ product.image.url }}{% endif %}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.id }}')"
-                    style="width: 100%; padding: 8px; border: 1.5px solid #f85606; background: transparent; color: #f85606; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 11px; text-transform: uppercase;">
+                    onclick="handleViewDetails(event, '{{ product.name|escapejs }}', '{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}', '{{ product.discounted_price|floatformat:2 }}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.rating }}', '{{ product.brand|escapejs }}', '{{ product.category.name|escapejs }}', '{{ product.stock }}', '{{ product.id }}')"
+                    style="width: 100%; padding: 10px; border: 1.5px solid #f85606; background: transparent; color: #f85606; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 11px; text-transform: uppercase;">
                 View Details
             </button>
 
-            <button type="button" onclick="handleAddToCart(event, '{{ product.id }}')" 
-                    style="width: 100%; padding: 10px; border: none; background: #f85606; color: #fff; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 11px; text-transform: uppercase;">
-                Add to Cart
+            <button type="button" 
+                    onclick="handleAddToCart(event, '{{ product.id }}')" 
+                    {% if product.stock <= 0 %}
+                        disabled style="width: 100%; padding: 11px; border: none; background: #cccccc; color: #fff; font-weight: 700; border-radius: 8px; cursor: not-allowed; font-size: 11px; text-transform: uppercase;"
+                    {% else %}
+                        style="width: 100%; padding: 11px; border: none; background: #f85606; color: #fff; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 11px; text-transform: uppercase;"
+                    {% endif %}>
+                {% if product.stock > 0 %}Add to Cart{% else %}Sold Out{% endif %}
             </button>
         </div>
     </div>
 </div>
 
 <script>
-// 1. View Details handle garne ra Activity Log garne
-function handleViewDetails(event, name, image, price, description, productId) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
+// १. Modal खोल्ने फङ्सन - parameters thapiyeko matra
+function handleViewDetails(e, name, img, discountedPrice, realPrice, desc, rating, brand, category, stock, id) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
-
-    // Server lai activity log garna request pathaune
-    fetch(`/log-product-view/${productId}/`, {
-        method: 'GET',
+    
+    // ✅ Activity log garne - same as before
+    fetch(`/log-product-view/${id}/`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(response => response.json())
-    .then(data => console.log("Log Status:", data))
-    .catch(err => console.error("Logging error:", err));
-
-    // Timro existing modal function call garne (yadi chha bhane)
+    }).catch(err => console.log("Log error:", err));
+    
+    // ✅ Modal open garne
     if (typeof showProduct === "function") {
-        showProduct(event, name, image, price, description, productId);
+        showProduct(e, name, img, discountedPrice, realPrice, desc, rating, brand, category, stock, id);
+    } else {
+        console.error("Modal function showProduct not found.");
     }
 }
 
-// 2. Whistle (Heart) Toggle
-function handleWhistleClick(event, productId) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
+// २. Add to Cart फङ्सन - SAME, kei change xaina
+function handleAddToCart(e, productId) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
     }
-    fetch(`/orders/toggle-whistle/${productId}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(r => r.json())
-    .then(data => {
-        if (data.status === 'success') {
-            document.querySelectorAll(`.heart-emoji-${productId}`).forEach(h => h.innerHTML = data.is_whistle ? '❤️' : '🤍');
-        }
-    });
-}
-
-// 3. Add to Cart
-function handleAddToCart(event, productId) {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
+    
     fetch(`/orders/add-to-cart/${productId}/`, {
         method: 'POST',
         headers: { 
@@ -91,8 +132,36 @@ function handleAddToCart(event, productId) {
         }
     })
     .then(r => r.json())
-    .then(data => { 
-        if (data.status === 'success') alert("Product added to cart! ✅"); 
+    .then(data => {
+        if (data.status === 'success') {
+            const cartCountElem = document.getElementById('cart-count');
+            if (cartCountElem) {
+                cartCountElem.innerText = data.cart_count;
+            }
+            alert("Added to cart! 🛒");
+        } else {
+            window.location.href = "/login/";
+        }
+    })
+    .catch(err => console.error("Error:", err));
+}
+
+// ३. Whistle Toggle - SAME, kei change xaina
+function handleWhistleClick(e, productId) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    fetch(`/orders/toggle-whistle/${productId}/`, { 
+        headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.querySelectorAll(`.heart-emoji-${productId}`).forEach(h => {
+                h.innerHTML = data.is_whistle ? '❤️' : '🤍';
+            });
+        }
     });
 }
 </script>

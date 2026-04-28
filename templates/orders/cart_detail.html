@@ -9,10 +9,16 @@
     
     <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #eee;">
         {% if cart.items.all %}
+            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="selectAll" style="transform: scale(1.3); cursor: pointer;" onclick="toggleAll(this)">
+                <label for="selectAll" style="font-weight: 600; color: #555; cursor: pointer;">Select All Items</label>
+            </div>
+
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <thead>
                     <tr style="border-bottom: 2px solid #f85606; text-align: left; color: #666; font-size: 14px; text-transform: uppercase;">
-                        <th style="padding: 15px 10px;">Product</th>
+                        <th style="padding: 15px 10px; width: 40px;">Select</th>
+                        <th>Product</th>
                         <th>Price</th>
                         <th style="text-align: center;">Quantity</th>
                         <th>Total</th>
@@ -21,13 +27,30 @@
                 </thead>
                 <tbody>
                     {% for item in cart.items.all %}
-                    <tr id="cart-item-row-{{ item.product.id }}" style="border-bottom: 1px solid #f0f0f0;">
+                    <tr id="cart-item-row-{{ item.product.id }}" class="cart-row" style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 20px 10px;">
+                            <input type="checkbox" name="selected_items" value="{{ item.id }}" 
+                                   class="item-checkbox"
+                                   data-price="{{ item.subtotal }}"
+                                   style="transform: scale(1.3); cursor: pointer;"
+                                   onclick="calculateSelectedTotal(true)">
+                        </td>
                         <td style="padding: 20px 10px;">
                             <span style="font-weight: 600; color: #333;">{{ item.product.name }}</span>
                         </td>
-
-                        <td style="color: #444;">Rs. <span class="unit-price">{{ item.product.price|floatformat:2 }}</span></td>
-
+                        <td style="color: #444;">
+                            {% if item.product.discount_percentage > 0 %}
+                                <span style="font-weight: 700; color: #f85606;">
+                                    Rs. <span class="unit-price">{{ item.product.discounted_price|floatformat:2 }}</span>
+                                </span>
+                                <br>
+                                <span style="color: #999; text-decoration: line-through; font-size: 12px;">
+                                    Rs. {{ item.product.price|floatformat:2 }}
+                                </span>
+                            {% else %}
+                                Rs. <span class="unit-price">{{ item.product.price|floatformat:2 }}</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <div style="display: flex; align-items: center; justify-content: center;">
                                 <div style="display: flex; align-items: center; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; width: fit-content;">
@@ -35,11 +58,9 @@
                                         style="background: #f85606; color: white; border: none; width: 32px; height: 32px; cursor: pointer; font-weight: bold; font-size: 18px;">
                                         −
                                     </button>
-                                    
                                     <span id="cart-qty-{{ item.product.id }}" style="width: 45px; text-align: center; font-weight: 700; color: #333;">
                                         {{ item.quantity }}
                                     </span>
-                                    
                                     <button onclick="updateCartPageQty('{{ item.product.id }}', 'plus')" 
                                         style="background: #f85606; color: white; border: none; width: 32px; height: 32px; cursor: pointer; font-weight: bold; font-size: 18px;">
                                         +
@@ -47,11 +68,9 @@
                                 </div>
                             </div>
                         </td>
-
                         <td style="color: #f85606; font-weight: 700; font-size: 16px;">
-                            Rs. <span id="item-subtotal-{{ item.product.id }}">{{ item.subtotal|floatformat:2 }}</span>
+                            Rs. <span id="item-subtotal-{{ item.product.id }}" class="row-subtotal">{{ item.subtotal|floatformat:2 }}</span>
                         </td>
-
                         <td style="text-align: right; padding-right: 10px;">
                             <a href="{% url 'remove_from_cart' item.id %}" 
                                style="color: #ff4d4d; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #ff4d4d; padding: 5px 12px; border-radius: 5px;">
@@ -65,19 +84,23 @@
 
             <div style="border-top: 2px solid #eee; padding-top: 25px; display: flex; justify-content: flex-end; align-items: center; gap: 40px;">
                 <div style="text-align: right;">
-                    <p style="margin: 0; color: #777; font-size: 14px;">Total Amount To Pay:</p>
+                    <p style="margin: 0; color: #777; font-size: 14px;">Total for Selected Items (<span id="selected-count">0</span>):</p>
                     <h2 style="margin: 5px 0; color: #f85606; font-size: 28px; font-weight: 800;">
-                        Rs. <span id="cart-total-price">{{ cart.total_price|floatformat:2 }}</span>
+                        Rs. <span id="cart-total-price">0.00</span>
                     </h2>
                 </div>
-                <form action="{% url 'payment:checkout_process' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="total_price" value="{{ cart.total_price }}">
-    
-    <button type="submit" style="background: #f85606; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(248, 86, 6, 0.3);">
-        PROCEED TO CHECKOUT
-    </button>
-</form>
+                
+                <form action="{% url 'payment:checkout_process' %}" method="POST" id="checkout-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="is_single_checkout" id="is-single-checkout" value="false">
+                    <input type="hidden" name="single_item_id" id="single-item-id" value="">
+                    <input type="hidden" name="selected_item_ids" id="selected-item-ids">
+                    <input type="hidden" name="total_price" id="hidden-total-price">
+                    
+                    <button type="submit" id="checkout-btn" style="background: #f85606; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(248, 86, 6, 0.3);">
+                        PROCEED TO CHECKOUT
+                    </button>
+                </form>
             </div>
         {% else %}
             <div style="text-align: center; padding: 60px 20px;">
@@ -91,6 +114,46 @@
 </div>
 
 <script>
+function calculateSelectedTotal(isManualAction = false) {
+    if(isManualAction) {
+        const isSingleInput = document.getElementById('is-single-checkout');
+        if(isSingleInput) isSingleInput.value = "false";
+    }
+
+    let total = 0;
+    let count = 0;
+    let selectedIds = [];
+    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+    
+    checkboxes.forEach(cb => {
+        const row = cb.closest('tr');
+        const subtotalText = row.querySelector('.row-subtotal').innerText;
+        total += parseFloat(subtotalText);
+        count++;
+        selectedIds.push(cb.value);
+    });
+
+    document.getElementById('cart-total-price').innerText = total.toFixed(2);
+    document.getElementById('hidden-total-price').value = total.toFixed(2);
+    document.getElementById('selected-count').innerText = count;
+    document.getElementById('selected-item-ids').value = selectedIds.join(',');
+
+    const btn = document.getElementById('checkout-btn');
+    if (count === 0) {
+        btn.style.opacity = '0.5';
+        btn.style.pointerEvents = 'none';
+    } else {
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+    }
+}
+
+function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+    calculateSelectedTotal(true);
+}
+
 function updateCartPageQty(productId, action) {
     fetch(`/orders/update-cart-qty/${productId}/?action=${action}`, {
         method: 'GET',
@@ -100,33 +163,21 @@ function updateCartPageQty(productId, action) {
     .then(data => {
         if (data.status === 'success') {
             if (data.new_qty === 0) {
-                // Item 0 vaye page refresh garera list bata hataune
                 location.reload(); 
             } else {
-                // 1. Quantity update
                 document.getElementById(`cart-qty-${productId}`).innerText = data.new_qty;
-
-                // 2. Individual Subtotal Update (.toFixed(2) le floating point error hatauchha)
                 const subtotalElement = document.getElementById(`item-subtotal-${productId}`);
                 if (subtotalElement && data.subtotal !== undefined) {
                     subtotalElement.innerText = parseFloat(data.subtotal).toFixed(2);
                 }
-
-                // 3. Navbar Cart Count Update
-                const cartBadge = document.getElementById('cart-count');
-                if (cartBadge) {
-                    cartBadge.innerText = `(${data.cart_count})`;
-                }
-
-                // 4. Grand Total Price Update (.toFixed(2) thapeko)
-                const totalElement = document.getElementById('cart-total-price');
-                if (totalElement && data.total_price !== undefined) {
-                    totalElement.innerText = parseFloat(data.total_price).toFixed(2);
-                }
+                calculateSelectedTotal(true);
             }
         }
-    })
-    .catch(e => console.error("Error:", e));
+    });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    calculateSelectedTotal(false);
+});
 </script>
 {% endblock %}

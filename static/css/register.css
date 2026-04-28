@@ -6,6 +6,7 @@
     align-items: center;
     min-height: 85vh;
     padding: 30px 20px;
+    background-color: #f4f7f6; /* हल्का ग्रे ब्याकग्राउन्डले कार्डलाई टल्काउँछ */
 }
 
 .auth-card {
@@ -19,30 +20,36 @@
 
 .auth-card h2 {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     color: #222;
     font-weight: 700;
 }
 
-.auth-form {
-    display: flex;
-    flex-direction: column;
-}
-
 .input-group {
-    display: flex;
-    flex-direction: column;
+    margin-bottom: 12px; /* अलि कम ग्याप ताकि सबै फिल्ड स्क्रिनमा अटुन */
+    position: relative;
 }
 
 .auth-field {
     width: 100%;
     padding: 12px 15px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 8px;
     outline: none;
     font-size: 14px;
     background: #fcfcfc;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* प्याडिङले विड्थ नबढोस् भनेर */
+}
+
+/* Select tag लाई अलि मिलाएको */
+select.auth-field {
+    cursor: pointer;
+    appearance: none; /* डिफल्ट ब्राउजर स्टाइल हटाउन */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 15px;
 }
 
 .auth-field:focus {
@@ -51,20 +58,13 @@
     box-shadow: 0 0 0 3px rgba(248, 86, 6, 0.1);
 }
 
-/* AJAX Message Box Styling */
+/* AJAX Message Box - यसलाई सफा बनाएको */
 .msg-box {
-    height: 20px;
+    min-height: 18px;
     font-size: 11px;
     font-weight: 600;
-    margin-top: 2px;
-    margin-bottom: 8px;
+    margin-top: 4px;
     padding-left: 5px;
-}
-
-/* Specific styling for password and select */
-.auth-form input[type="password"], 
-.auth-form select {
-    margin-bottom: 15px;
 }
 
 .auth-btn {
@@ -78,28 +78,18 @@
     font-size: 15px;
     cursor: pointer;
     transition: 0.3s;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .auth-btn:hover {
     background-color: #d94400;
+    transform: translateY(-1px); /* सानो होभर इफेक्ट */
 }
 
-/* Disabled State for Button */
-.btn-disabled {
-    opacity: 0.5;
-    cursor: not-allowed !important;
+.auth-btn:active {
+    transform: translateY(0);
 }
 
-.error_message {
-    background: #fdeaea;
-    color: #d93025;
-    padding: 12px;
-    border-radius: 6px;
-    text-align: center;
-    font-size: 14px;
-    margin-bottom: 20px;
-}
 
 .auth-footer {
     text-align: center;
@@ -118,8 +108,24 @@
     text-decoration: underline;
 }
 
+
+
+    .form-step {
+        display: none; 
+    }
+    .form-step-active {
+        display: block !important;
+    }
+    .btn-disabled {
+        background-color: #ccc !important;
+        cursor: not-allowed !important;
+    }
+
+
+    
+/* Responsiveness */
 @media (max-width: 480px) {
     .auth-card {
-        padding: 25px;
+        padding: 25px 20px;
     }
 }

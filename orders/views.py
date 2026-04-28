@@ -17,21 +17,29 @@ def add_to_cart(request, product_id):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
 
-    if not item_created:
-        cart_item.quantity += 1
-        cart_item.save()
+    # ✅ नयाँ लजिक: फ्रन्टइन्डबाट आएको quantity तान्ने, नआए १ मान्ने
+    qty_from_post = int(request.POST.get('quantity', 1))
 
-    # --- ACTIVITY LOG START ---
-    # Customer le add garda matra record basne
-    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
+    if not item_created:
+        # पहिले नै कार्टमा छ भने आएको परिमाण थप्ने
+        cart_item.quantity += qty_from_post
+    else:
+        # नयाँ आइटम हो भने सिधै आएको परिमाण राख्ने
+        cart_item.quantity = qty_from_post
+    
+    cart_item.save()
+
+    # --- ACTIVITY LOG ---
+    if request.user.role == 'CUSTOMER':
         CustomerActivity.objects.create(
             user=request.user,
             action='add_to_cart',
-            product=product
+            product=product,
         )
-    # --- ACTIVITY LOG END ---
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # cart.items.count() ले आइटमको सङ्ख्या दिन्छ (जस्तै: २ थरी सामान)
+        # यदि तिमीलाई जम्मा सामान (Quantity) को टोटल चाहिएको हो भने अर्कै लजिक चाहिन्छ
         return JsonResponse({'status': 'success', 'cart_count': cart.items.count()})
     
     return redirect('cart_detail')
@@ -50,7 +58,7 @@ def remove_from_cart(request, item_id):
         CustomerActivity.objects.create(
             user=request.user,
             action='remove_from_cart',
-            product=cart_item.product
+            product=cart_item.product,
         )
     # --- ACTIVITY LOG END ---
     
@@ -66,28 +74,51 @@ def update_cart_qty(request, product_id):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_item = get_object_or_404(CartItem, cart=cart, product=product)
 
+    # एक्टिभिटी लगको लागि एक्सन नाम राख्ने रिएबल
+    activity_action = None
+
     if action == 'plus':
         cart_item.quantity += 1
         cart_item.save()
+        activity_action = 'add_to_cart'
+    
     elif action == 'minus':
         if cart_item.quantity > 1:
             cart_item.quantity -= 1
             cart_item.save()
+            activity_action = 'reduce_cart_qty' 
         else:
             cart_item.delete()
+            activity_action = 'remove_from_cart'
+        
+            if request.user.role == 'CUSTOMER':
+                CustomerActivity.objects.create(
+                    user=request.user,
+                    action=activity_action,
+                    product=product
+                )
+            
             return JsonResponse({
                 'status': 'success', 
                 'new_qty': 0, 
                 'cart_count': cart.items.count(),
-                'total_price': cart.total_price # Property call
+                'total_price': cart.total_price
             })
+
+    if activity_action and request.user.role == 'CUSTOMER':
+        CustomerActivity.objects.create(
+            user=request.user,
+            action=activity_action,
+            product=product,
+            extra_info=f"New quantity: {cart_item.quantity}" if action != 'minus' or cart_item.id else "Item removed"
+        )
     
     return JsonResponse({
         'status': 'success', 
         'new_qty': cart_item.quantity, 
         'cart_count': cart.items.count(),
-        'total_price': cart.total_price, # Total price pathako
-        'subtotal': cart_item.subtotal   # Individual item ko subtotal
+        'total_price': cart.total_price,
+        'subtotal': cart_item.subtotal
     })
 
 @login_required
@@ -97,7 +128,8 @@ def orders_view(request):
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and request.user.role == 'CUSTOMER':
         CustomerActivity.objects.create(
             user=request.user,
-            action='view_orders'
+            action='view_orders',
+            extra_info=f"Total Orders: {orders.count()}"
         )
 
     return render(request, 'orders/orders.html', {'orders': orders})
@@ -108,13 +140,24 @@ def update_order_status(request):
         order_id = request.POST.get('order_id')
         new_status = request.POST.get('status')
         
-        # Ensure the order belongs to one of the seller's products
         order = get_object_or_404(Order, id=order_id, product__seller=request.user)
+        
+        # पुराना स्थिति के थियो भनेर चेक गर्ने (यदि पछि स्टक मिलाउनु पर्यो भने)
+        old_status = order.status
+        
         order.status = new_status
         order.save()
-        
-        messages.success(request, f"Order #{order.id} status updated to {new_status}.")
-        return redirect('dashboard') # Redirect back to dashboard
+
+        # ✅ यदि सेलरले अर्डर क्यान्सिल गर्यो भने स्टक फिर्ता गरिदिने
+        if new_status == 'Cancelled' and old_status != 'Cancelled':
+            product = order.product
+            product.stock += order.quantity # सामान स्टकमा फिर्ता भयो
+            product.save()
+            messages.warning(request, f"Order #{order.id} cancelled and stock updated.")
+        else:
+            messages.success(request, f"Order #{order.id} status updated to {new_status}.")
+            
+        return redirect('dashboard')
     
     return redirect('dashboard')
 
@@ -125,9 +168,10 @@ def delete_order(request, order_id):
         CustomerActivity.objects.create(
             user=request.user,
             action='delete_order',
-            product_id=str(order.product.id)  # FK object ko id pathako
+            product_id=str(order.product.id), 
         )
     return redirect('orders')
+
 def product_list(request):
     products = Product.objects.all().order_by('?') 
     context = {
@@ -148,20 +192,25 @@ def toggle_whistle(request, product_id):
     if not request.user.is_authenticated:
         return JsonResponse({'status': 'login_required'}, status=401)
     
-    if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
-        CustomerActivity.objects.create(
-            user=request.user,
-            action='toggle_whistle',
-            product_id=product_id
-        )
 
     product = get_object_or_404(Product, id=product_id)
     
-    # Toggle logic
+
     product.is_whistle = not product.is_whistle
     product.save()
 
+
+    if not request.user.is_superuser and not request.user.is_staff and not request.user.role == 'SELLER' and request.user.role == 'CUSTOMER':
+        # नयाँ स्थिति अनुसार एक्सनको नाम राख्ने
+        current_action = 'add_whistle' if product.is_whistle else 'remove_whistle'
+        
+        CustomerActivity.objects.create(
+            user=request.user,
+            action=current_action,
+            product_id=product_id
+        )
+
     return JsonResponse({
         'status': 'success', 
-        'is_whistle': product.is_whistle  # Yo value frontend le use garchha red heart ko lagi
+        'is_whistle': product.is_whistle
     })

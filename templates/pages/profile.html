@@ -1,0 +1,137 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-profile-wrapper" style="background-color: #f4f4f4; padding: 50px 0; min-height: 80vh">
+    <div class="container" style="max-width: 600px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin: 0 auto;">
+        
+        <div class="form-header" style="text-align: center; margin-bottom: 30px">
+            <h2 style="color: #333; font-weight: 700">My Profile</h2>
+            <p style="color: #777">Personal Information & Interests</p>
+        </div>
+
+        <div class="profile-details">
+            <div class="detail-group" style="margin-bottom: 25px;">
+                <label class="view-label">Username</label>
+                <p class="view-value">{{ user.get_full_name|default:user.username }}</p>
+            </div>
+
+            <div class="detail-group" style="margin-bottom: 25px;">
+                <label class="view-label">Email Address</label>
+                <p class="view-value">{{ user.email }}</p>
+            </div>
+
+            <div class="detail-group" style="margin-bottom: 25px;">
+                <label class="view-label">Account Role</label>
+                <p class="view-value" style="display: inline-block; color: #f85606; font-weight: 700; background: #fff5f0; padding: 4px 12px; border-radius: 4px;">
+                    {{ user.role }}
+                </p>
+            </div>
+
+            <div class="detail-group" style="margin-bottom: 25px;">
+                <label class="view-label">Age </label>
+                <p class="view-value">{{ user.age|default:"Not specified" }}</p>
+            </div>
+
+                <div class="detail-group" style="margin-bottom: 25px;">
+                    <label class="view-label">Gender</label>
+                    <p class="view-value">{{ user.gender|default:"Not specified" }}</p>
+                </div>
+
+            <div class="detail-group" style="margin-bottom: 25px;">
+                <label class="view-label">Interests</label>
+                <div class="interests-grid" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                    {% if user.interests.all %}
+                        {% for interest in user.interests.all %}
+                            <div class="interest-chip-view">
+                                {{ interest.name }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #999; font-style: italic;">No interests selected.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 25px;">
+            <a href="{% url 'account:update_profile' %}" class="edit-btn">Edit Profile</a>
+            <a href="{% url 'home' %}" class="cancel-link">Back to Store</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Labels र Values को लागि सिम्पल फन्ट स्टाइल */
+    .view-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: #444;
+        font-size: 15px;
+    }
+
+    .view-value {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        background: #fafafa;
+        font-size: 15px;
+        color: #333;
+        margin: 0;
+    }
+
+    .interest-chip-view {
+        background: white;
+        border: 1.5px solid #ddd;
+        padding: 6px 14px;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        transition: 0.2s;
+    }
+
+    .interest-chip-view:hover {
+        border-color: #f85606;
+        color: #f85606;
+        background: #fff5f0;
+    }
+
+    .edit-btn {
+        display: block;
+        width: 100%;
+        background-color: #f85606;
+        color: white;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        transition: 0.3s;
+        box-sizing: border-box;
+    }
+
+    .edit-btn:hover {
+        background-color: #d44d05;
+        transform: translateY(-1px);
+    }
+
+    .cancel-link {
+        display: block;
+        text-align: center;
+        margin-top: 18px;
+        text-decoration: none;
+        color: #888;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .cancel-link:hover {
+        color: #333;
+    }
+</style>
+{% endblock %}

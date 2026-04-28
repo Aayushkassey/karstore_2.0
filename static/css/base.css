@@ -1,38 +1,8 @@
-/* KAR STORE - COMPLETE STYLESHEET 
-    Balanced for Performance & Design
+/* /* /* KAR STORE - COMPLETE STYLESHEET 
+    Balanced for Performance & Design (Fixed Version)
 */
 
 /* 1. CORE VARIABLES & RESET */
-
- /* Extra safety for the logo from screenshot 8f03b4 */
-        .main-brand-logo, .nav-logo img {
-            height: 45px !important;
-            width: auto !important;
-            max-height: 45px !important;
-            object-fit: contain;
-        }
-
-        /* Mobile Optimized Suggestion Box */
-        @media (max-width: 768px) {
-            .suggestion-container {
-                position: fixed; /* Mobile ma keyboard mathi fixed baschha */
-                top: 60px;
-                left: 10px;
-                right: 10px;
-                width: calc(100% - 20px);
-                max-height: 50vh;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-                border-radius: 12px;
-                z-index: 99999;
-            }
-            .suggestion-item {
-                padding: 16px 20px; /* Touch garna thulo thau */
-                font-size: 15px;
-                border-bottom: 1px solid #eee;
-            }
-        }
-
-
 :root {
     --primary-orange: #f85606;
     --primary-black: #000000;
@@ -58,6 +28,14 @@ body {
     line-height: 1.6;
 }
 
+/* Logo Safety */
+.main-brand-logo, .nav-logo img {
+    height: 45px !important;
+    width: auto !important;
+    max-height: 45px !important;
+    object-fit: contain;
+}
+
 /* 2. HEADER & SEARCH UI */
 .main-nav-wrapper {
     background: var(--white);
@@ -74,12 +52,6 @@ body {
     padding: 10px 5%;
     max-width: 1400px;
     margin: 0 auto;
-}
-
-.nav-logo img {
-    height: 45px !important;
-    width: auto !important;
-    object-fit: contain;
 }
 
 .nav-search {
@@ -114,7 +86,6 @@ body {
     font-size: 16px;
 }
 
-/* Auth Links */
 .nav-utilities {
     display: flex;
     align-items: center;
@@ -127,17 +98,36 @@ body {
     text-decoration: none;
     font-size: 14px;
 }
+
 .auth-link:hover {
     color: var(--primary-black);
 }
 
-/* 3. JEVEE STYLE MEGA MENU */
+/* User Profile Dropdown */
+.profile-dropdown { position: relative; z-index: 1000 !important; }
+.user-logo-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-soft); cursor: pointer; }
+.dropdown-menu { 
+    display: none; 
+    position: absolute; 
+    right: 0; 
+    top: 100%; 
+    background: white; 
+    min-width: 180px; 
+    box-shadow: var(--shadow-md); 
+    border-radius: 8px; 
+    padding: 10px 0; 
+    list-style: none;
+    z-index: 999 !important;
+}
+.show-dropdown { display: block !important; }
+
+/* 3. JEVEE STYLE MEGA MENU - BRANDS & PRODUCTS UI */
 .category-strip {
     background: var(--primary-black);
     width: 100%;
     position: relative;
     z-index: 99;
-    overflow: visible !important; /* Dropout visible huna yo chaincha */
+    overflow: visible !important;
 }
 
 .mega-menu-container {
@@ -149,23 +139,16 @@ body {
     position: relative;
 }
 
+
 .scroll-wrapper {
     flex: 1;
     overflow-x: auto;
     scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
 }
-
 .scroll-wrapper::-webkit-scrollbar { display: none; }
 
-.dynamic-category-list {
-    display: flex;
-    list-style: none;
-}
-
-.cat-item { 
-    position: static; /* Dropdown screen width ko huna lai yo static chaincha */
-}
+.dynamic-category-list { display: flex; list-style: none; }
+.cat-item { position: static; } /* Full width container logic */
 
 .cat-link {
     color: var(--white);
@@ -176,24 +159,25 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     transition: var(--transition);
+    width: max-content;
 }
 
-.cat-item:hover .cat-link {
-    background: var(--primary-orange);
-}
+.cat-item:hover .cat-link { background: var(--primary-orange); }
 
-/* Full Width Dropdown */
+/* ⚡ The Mega Dropdown (Fixed Brands + Products) */
 .mega-products-dropdown {
     display: none;
     position: absolute;
     top: 100%;
-    left: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 750px; 
     background: var(--white);
-    padding: 30px 5%;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    padding: 25px;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.2);
     z-index: 1001;
-    border-top: 1px solid var(--border-soft);
+    border-radius: 0 0 12px 12px;
+    border-top: 2px solid var(--primary-orange);
 }
 
 .cat-item:hover .mega-products-dropdown {
@@ -202,63 +186,39 @@ body {
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-.mini-product-grid {
+.mega-inner-content {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    grid-template-columns: 180px 1fr;
+    gap: 30px;
 }
 
-.mini-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border: 1px solid var(--border-soft);
-    border-radius: 8px;
-}
+/* Brand Sidebar */
+.mega-sidebar { border-right: 1px solid var(--border-soft); padding-right: 15px; }
+.mega-title { font-size: 12px; font-weight: 800; color: var(--primary-orange); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+.brand-list { list-style: none; }
+.brand-list li a { font-size: 13px; color: var(--text-main); padding: 8px 0; display: block; text-decoration: none; transition: var(--transition); }
+.brand-list li a:hover { color: var(--primary-orange); padding-left: 8px; }
 
-.mini-img img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-}
+/* Mini Product Grid in Menu */
+.mini-product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.mini-card { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: #fbfbfb; transition: var(--transition); }
+.mini-card:hover { background: var(--white); box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-color: var(--primary-orange); }
+.mini-img { width: 50px; height: 50px; flex-shrink: 0; background: #fff; border-radius: 4px; overflow: hidden; }
+.mini-img img { width: 100%; height: 100%; object-fit: contain; }
+.mini-info h6 { font-size: 12px; margin: 0 0 3px 0; color: var(--text-main); font-weight: 600; }
+.mini-price { color: var(--primary-orange); font-weight: 700; font-size: 13px; }
+.see-more { display: block; text-align: right; margin-top: 15px; font-size: 12px; color: var(--primary-orange); text-decoration: none; font-weight: 700; }
 
-.mini-price {
-    color: var(--primary-orange);
-    font-weight: 700;
-    font-size: 13px;
-}
+.nav-addon-info { padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.2); }
 
-/* 4. HOME PAGE & PRODUCT GRID */
-.main-container {
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 20px 15px;
-}
 
-.hero-banner {
-    background: var(--white);
-    padding: 60px 40px;
-    border-radius: 15px;
-    margin-bottom: 30px;
-    text-align: center;
-    border: 1px solid var(--border-soft);
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 40px 0 20px;
-    border-left: 5px solid var(--primary-orange);
-    padding-left: 15px;
-}
+.main-container { max-width: 1300px; margin: 0 auto; padding: 20px 15px; }
+.hero-banner { background: var(--white); padding: 60px 40px; border-radius: 15px; margin-bottom: 30px; text-align: center; border: 1px solid var(--border-soft); }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin: 40px 0 20px; border-left: 5px solid var(--primary-orange); padding-left: 15px; }
 
 .product-grid {
     display: grid;
@@ -267,52 +227,14 @@ body {
     margin-bottom: 40px;
 }
 
-.product-card {
-    background: var(--white);
-    border: 1px solid var(--border-soft);
-    border-radius: 12px;
-    padding: 15px;
-    text-align: center;
-    transition: var(--transition);
-}
+.product-card { background: var(--white); border: 1px solid var(--border-soft); border-radius: 12px; padding: 15px; text-align: center; transition: var(--transition); }
+.product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); }
+.img-wrapper img { width: 100%; height: 180px; object-fit: contain; }
+.price-tag { font-size: 18px; font-weight: 700; color: var(--primary-orange); margin: 10px 0; }
+.view-btn { width: 100%; padding: 10px; background: transparent; border: 2px solid var(--primary-orange); color: var(--primary-orange); border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: var(--transition); }
+.view-btn:hover { background: var(--primary-orange); color: var(--white); }
 
-.product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-md);
-}
-
-.img-wrapper img {
-    width: 100%;
-    height: 180px;
-    object-fit: contain;
-}
-
-.price-tag {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--primary-orange);
-    margin: 10px 0;
-}
-
-.view-btn {
-    width: 100%;
-    padding: 10px;
-    background: transparent;
-    border: 2px solid var(--primary-orange);
-    color: var(--primary-orange);
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: var(--transition);
-}
-
-.view-btn:hover {
-    background: var(--primary-orange);
-    color: var(--white);
-}
-
-/* 5. SUGGESTION BOX FIX */
+/* 5. SUGGESTION BOX UI */
 .suggestion-container {
     position: absolute;
     top: 100%;
@@ -325,22 +247,27 @@ body {
     z-index: 1100;
     display: none;
 }
-
-.suggestion-item {
-    padding: 12px 20px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.suggestion-item:hover {
-    background: #fff5f0;
-    color: var(--primary-orange);
-}
+.suggestion-item { padding: 12px 20px; cursor: pointer; transition: 0.2s; }
+.suggestion-item:hover { background: #fff5f0; color: var(--primary-orange); }
 
 /* 6. MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
-    .top-header { flex-direction: column; gap: 10px; }
+    .top-header { flex-direction: column; gap: 10px; padding: 10px; }
+    .nav-logo img { height: 35px !important; }
     .nav-search { margin: 10px 0; width: 100%; }
-    .product-grid { grid-template-columns: repeat(2, 1fr); }
-    .mini-product-grid { grid-template-columns: 1fr; }
-}
+    .nav-utilities { width: 100%; justify-content: center; gap: 15px; }
+    
+    .category-strip { display: block; overflow-x: auto; } /* Mobile ma Mega Menu j्याउ हुन्छ */
+    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    
+    .suggestion-container {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        width: calc(100% - 20px);
+        max-height: 50vh;
+        z-index: 99999;
+    }
+    .suggestion-item { padding: 16px 20px; font-size: 15px; }
+}  
