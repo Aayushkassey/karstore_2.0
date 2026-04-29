@@ -99,6 +99,16 @@
         step1.classList.add('form-step-active');
     });
 
+    const passwordField = document.querySelector('input[name="password"]');
+    passwordField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            if (step1.classList.contains('form-step-active')) {
+                e.preventDefault(); 
+                nextBtn.click();
+            }
+        }
+    });
+
     // ३. AJAX: Username र Email Check
     document.querySelectorAll('.check-field').forEach(item => {
         item.addEventListener('input', function() {
@@ -144,5 +154,13 @@
             nextBtn.classList.remove('btn-disabled');
         }
     }
+    setTimeout(function() {
+    let errorMsg = document.querySelector('.error_message');
+    if (errorMsg) {
+        errorMsg.style.transition = "opacity 0.5s ease";
+        errorMsg.style.opacity = "0";
+        setTimeout(() => errorMsg.style.display = 'none', 500);
+    }
+}, 3000);
 </script>
 {% endblock %}

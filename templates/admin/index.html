@@ -1,0 +1,226 @@
+{% extends "admin/index.html" %} {% block content %}
+<div class="container-fluid">
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <div class="small-box bg-primary shadow-sm">
+        <div class="inner">
+          <h3>{{ user_count|default:0 }}</h3>
+          <p>Total Users</p>
+        </div>
+        <div class="icon"><i class="fas fa-users"></i></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="small-box bg-info shadow-sm">
+        <div class="inner">
+          <h3>{{ product_count|default:0 }}</h3>
+          <p>Total Products</p>
+        </div>
+        <div class="icon"><i class="fas fa-box-open"></i></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="small-box bg-secondary shadow-sm">
+        <div class="inner">
+          <h3>{{ activity_count|default:0 }}</h3>
+          <p>Total Activities</p>
+        </div>
+        <div class="icon"><i class="fas fa-history"></i></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="small-box bg-success shadow-sm">
+        <div class="inner">
+          <h3>{{ payment_count|default:0 }}</h3>
+          <p>Total Payments</p>
+        </div>
+        <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-7">
+      <div class="card card-outline card-primary h-100 shadow-sm">
+        <div class="card-header border-0">
+          <h3 class="card-title" style="font-weight: bold">
+            <i class="fas fa-brain mr-1"></i> AI Performance: Recommendation &
+            Retention
+          </h3>
+        </div>
+        <div class="card-body">
+          <div style="height: 280px">
+            <canvas id="hybridModelChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card card-outline card-success h-100 shadow-sm">
+        <div class="card-header border-0">
+          <h3 class="card-title" style="font-weight: bold">
+            <i class="fas fa-chart-pie mr-1"></i> Live Payment Analytics
+          </h3>
+        </div>
+        <div class="card-body">
+          <div style="height: 280px">
+            <canvas id="paymentStatusChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-9 col-12" id="original-tables-target"></div>
+    <div class="col-lg-3 col-12" id="original-sidebar-target"></div>
+  </div>
+</div>
+
+<div id="raw-django-content" style="display: none">{{ block.super }}</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // AI Trend Chart (ML Data)
+      const aiCtx = document.getElementById('hybridModelChart').getContext('2d');
+      new Chart(aiCtx, {
+          type: 'line',
+          data: {
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [
+                  {
+                      label: 'LightFM Success',
+                      data: [65, 78, 66, 89, 92, 105, 120],
+                      borderColor: '#007bff',
+                      backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                      fill: true,
+                      tension: 0.4
+                  },
+                  {
+                      label: 'XGBoost Retention',
+                      data: [40, 55, 45, 70, 65, 85, 95],
+                      borderColor: '#28a745',
+                      backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                      fill: true,
+                      tension: 0.4
+                  }
+              ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Payment Doughnut Chart (LIVE DATA with Pending)
+      const payCtx = document.getElementById('paymentStatusChart').getContext('2d');
+      new Chart(payCtx, {
+          type: 'doughnut',
+          data: {
+              labels: ['Success', 'Failure', 'Pending'],
+              datasets: [{
+                  data: [
+                      {{ success_payments|default:0 }},
+                      {{ failed_payments|default:0 }},
+                      {{ pending_payments|default:0 }}
+                  ],
+                  backgroundColor: ['#28a745', '#dc3545', '#ffc107'], // Success=Green, Fail=Red, Pending=Yellow
+                  borderWidth: 4,
+                  hoverOffset: 10
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '70%',
+              plugins: { legend: { position: 'bottom' } }
+          }
+      });
+
+      // Move Jazzmin Elements
+      const rawContent = document.getElementById('raw-django-content');
+      const mainContent = rawContent.querySelector('.col-lg-9.col-12');
+      const sidebarContent = rawContent.querySelector('.col-lg-3.col-12');
+      if (mainContent) document.getElementById('original-tables-target').innerHTML = mainContent.innerHTML;
+      if (sidebarContent) document.getElementById('original-sidebar-target').innerHTML = sidebarContent.innerHTML;
+  });
+</script>
+
+<style>
+  /* १. Navbar र Logout मेनुलाई सधैं दायाँ (Right) राख्न */
+  .navbar-nav.ml-auto {
+    margin-left: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+  }
+
+  /* २. ड्यासबोर्डको मुख्य लेआउट (Jazzmin सँग जुध्न नदिन) */
+  section.content .container-fluid {
+    display: block !important;
+    padding-top: 15px;
+  }
+
+  /* Jazzmin को डिफल्ट अनावश्यक रोहरू हटाउन */
+  section.content > .container-fluid > .row:not(:first-child),
+  .content-wrapper > .content > .container-fluid > .row {
+    display: none !important;
+  }
+
+  /* ३. माथिको ४ वटा रङ्गीन बक्स (Small Boxes) को स्टाइल */
+  .small-box {
+    border-radius: 15px !important;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .small-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .small-box .inner {
+    padding: 20px !important;
+  }
+
+  .small-box h3 {
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 5px;
+  }
+
+  .small-box p {
+    font-size: 1rem !important;
+    opacity: 0.9;
+  }
+
+  /* ४. ग्राफ र चार्ट भएका कार्डहरू (Cards) */
+  .card {
+    border-radius: 15px !important;
+    border: none !important;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding: 15px 20px !important;
+  }
+
+  .card-title {
+    font-size: 1.1rem !important;
+    color: #333;
+  }
+
+  /* ५. उत्तरदायी (Responsive) सुधारहरू */
+  @media (max-width: 768px) {
+    .navbar-nav.ml-auto {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+    }
+  }
+</style>
+{% endblock %}

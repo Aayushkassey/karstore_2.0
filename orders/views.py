@@ -12,6 +12,10 @@ from orders.models import Whistle
 
 @login_required
 def add_to_cart(request, product_id):
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'login_required'}, status=401)
+
     if request.user.role != 'CUSTOMER':
         return JsonResponse({
             'status': 'error', 
@@ -150,24 +154,34 @@ def update_order_status(request):
         new_status = request.POST.get('status')
         
         order = get_object_or_404(Order, id=order_id, product__seller=request.user)
-        
-        # पुराना स्थिति के थियो भनेर चेक गर्ने (यदि पछि स्टक मिलाउनु पर्यो भने)
         old_status = order.status
-        
-        order.status = new_status
-        order.save()
+        product = order.product
 
-        # ✅ यदि सेलरले अर्डर क्यान्सिल गर्यो भने स्टक फिर्ता गरिदिने
+        # १. यदि पहिले 'Cancelled' थिएन र अहिले 'Cancelled' गरियो भने: स्टक फिर्ता गर्ने (Stock In)
         if new_status == 'Cancelled' and old_status != 'Cancelled':
-            product = order.product
-            product.stock += order.quantity # सामान स्टकमा फिर्ता भयो
+            product.stock += order.quantity
             product.save()
-            messages.warning(request, f"Order #{order.id} cancelled and stock updated.")
+            messages.warning(request, f"Order #{order.id} cancelled. Stock restored (+{order.quantity}).")
+
+        # २. यदि पहिले 'Cancelled' थियो र अहिले फेरि 'Completed/Pending' बनाइयो भने: स्टक घटाउने (Stock Out)
+        elif old_status == 'Cancelled' and new_status != 'Cancelled':
+            if product.stock >= order.quantity:
+                product.stock -= order.quantity
+                product.save()
+                messages.success(request, f"Order #{order.id} reactivated. Stock deducted (-{order.quantity}).")
+            else:
+                # यदि स्टक छैन भने स्टाटस फेर्न नदिने
+                messages.error(request, f"Not enough stock to reactivate Order #{order.id}!")
+                return redirect('dashboard')
+
+        # ३. अन्य अवस्थामा (जस्तै Pending बाट Completed जाँदा): स्टक केही नगर्ने, बस स्टाटस फेर्ने
         else:
             messages.success(request, f"Order #{order.id} status updated to {new_status}.")
-            
-        return redirect('dashboard')
-    
+
+        # अन्त्यमा मात्र अर्डरको स्टाटस सेभ गर्ने
+        order.status = new_status
+        order.save()
+        
     return redirect('dashboard')
 
 def delete_order(request, order_id):

@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 # Views import
-from .views import login, register, select_interest, logout_view, check_username, check_email, skip_interests
+from .views import login, register, activate,select_interest, logout_view, check_username, check_email, skip_interests
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,6 +20,7 @@ urlpatterns = [
     # 2. Authentication Paths (Accounts logic)
     path('login/', login, name='login'),
     path('register/', register, name='register'),
+    path('activate/<uidb64>/<token>/', activate, name='activate'),
     path('logout/', logout_view, name='logout'),
     
 

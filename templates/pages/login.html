@@ -15,6 +15,13 @@
             <div class="error_message">{{ error }}</div>
         {% endif %}
 
+
+        {% if success %}
+            <div class="success_message" style="color: #2e7d32; background-color: #e8f5e9; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #a5d6a7;">
+                {{ success }}
+            </div>
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
             <input type="email" name="email" class="auth-field" placeholder="Email Address" required>
@@ -32,4 +39,17 @@
         </form>
     </div>
 </div>
+
+<script>
+    window.onload = function() {
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.error_message, .success_message');
+            messages.forEach(msg => {
+                msg.style.transition = "opacity 0.5s ease";
+                msg.style.opacity = "0";
+                setTimeout(() => msg.style.display = 'none', 500);
+            });
+        }, 3000);
+    };
+</script>
 {% endblock %}

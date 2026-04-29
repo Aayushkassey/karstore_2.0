@@ -10,7 +10,19 @@
     {% endif %}
 
     <div class="img-wrapper" 
-         onclick="handleViewDetails(event, '{{ product.name|escapejs }}', '{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}', '{{ product.discounted_price|floatformat:2 }}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.rating }}', '{{ product.brand|escapejs }}', '{{ product.category.name|escapejs }}', '{{ product.stock }}', '{{ product.id }}')"
+         onclick='handleViewDetails(
+                event,
+                "{{ product.name|escapejs }}",
+                "{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}",
+                "{{ product.discounted_price|floatformat:2 }}",
+                "{{ product.price|floatformat:2 }}",
+                "{{ product.description|escapejs }}",
+                "{{ product.rating|default:"0" }}",
+                "{{ product.brand|escapejs }}",
+                "{{ product.category.name|escapejs }}",
+                "{{ product.stock }}",
+                "{{ product.id }}"
+            )'
          style="position: relative; padding: 15px; background: #fff; height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
         
         <div class="whistle-indicator" 
@@ -78,7 +90,19 @@
 
         <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
             <button type="button" 
-                    onclick="handleViewDetails(event, '{{ product.name|escapejs }}', '{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}', '{{ product.discounted_price|floatformat:2 }}', '{{ product.price|floatformat:2 }}', '{{ product.description|escapejs }}', '{{ product.rating }}', '{{ product.brand|escapejs }}', '{{ product.category.name|escapejs }}', '{{ product.stock }}', '{{ product.id }}')"
+                    onclick='handleViewDetails(
+                            event,
+                            "{{ product.name|escapejs }}",
+                            "{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}",
+                            "{{ product.discounted_price|floatformat:2 }}",
+                            "{{ product.price|floatformat:2 }}",
+                            "{{ product.description|escapejs }}",
+                            "{{ product.rating|default:"0" }}",
+                            "{{ product.brand|escapejs }}",
+                            "{{ product.category.name|escapejs }}",
+                            "{{ product.stock }}",
+                            "{{ product.id }}"
+                        )'
                     style="width: 100%; padding: 10px; border: 1.5px solid #f85606; background: transparent; color: #f85606; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 11px; text-transform: uppercase;">
                 View Details
             </button>

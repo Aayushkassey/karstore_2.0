@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 from products.models import Product
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from payment.models import Payment
 
 # 1. Cart: User ko active shopping session
 class Cart(models.Model):
@@ -38,9 +41,25 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
+
     def __str__(self):
         return f"{self.user.username} - {self.product.name} ({self.status})"
     
+@receiver(post_save, sender=Order)
+def sync_status_to_payment(sender, instance, **kwargs):
+    # अर्डरसँग जोडिएको पछिल्लो पेमेन्ट खोज्ने
+    payment = Payment.objects.filter(user=instance.user).last()
+    
+    if payment:
+        new_status = 'Pending'
+        if instance.status == 'Completed':
+            new_status = 'Completed'
+        elif instance.status == 'Cancelled':
+            new_status = 'FAILED'
+        
+
+        Payment.objects.filter(id=payment.id).update(status=new_status)
+
 class Whistle(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

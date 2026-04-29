@@ -567,43 +567,45 @@
     }
 
     function buyNowFromModal(e) {
-        if (e) e.stopPropagation();
-        if (!currentModalProductId) return;
+    if (e) e.stopPropagation();
+    if (!currentModalProductId) return;
 
-        let qty = parseInt(document.getElementById('modalQty').value) || 1;
-        let total = baseDiscountedPrice * qty;
+    let qty = parseInt(document.getElementById('modalQty').value) || 1;
+    let total = baseDiscountedPrice * qty;
 
-        fetch(`/orders/add-to-cart/${currentModalProductId}/`, {
-            method: 'POST',
-            headers: {
-                // ✅ १. यो हेडर थप्नै पर्छ
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            // ✅ २. यो बडी थपेपछि मात्र ब्याकइन्डले ५ वटा सामान बुझ्छ
-            body: `quantity=${qty}`
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // ब्याकइन्डलाई चाहिने डेटा फर्ममा सेट गर्ने
-                    document.getElementById('checkoutTotalPrice').value = total;
-                    document.getElementById('checkoutQty').value = qty;
-                    document.getElementById('checkoutSingleId').value = currentModalProductId;
+    fetch(`/orders/add-to-cart/${currentModalProductId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `quantity=${qty}`
+    })
+    .then(r => {
+        // ✅ यदि Django ले 'Login Required' भनेर ४०१ वा ३०२ पठाएको छ भने
+        if (r.status === 401 || r.redirected) {
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+        return r.json();
+    })
+    .then(data => {
+        if (!data) return; // रिडाइरेक्ट भइसकेको भए यहाँ केही नगर्ने
 
-                    // अब फर्म सबमिट गर्ने
-                    document.getElementById('checkoutForm').submit();
-                } else if (data.status === 'login_required') {
-                    window.location.href = "{% url 'login' %}";
-                }
-            })
-            .catch(err => {
-                console.error("Error:", err);
-                alert("Something went wrong while adding to cart!");
-            });
-    }
-
+        if (data.status === 'success') {
+            document.getElementById('checkoutTotalPrice').value = total;
+            document.getElementById('checkoutQty').value = qty;
+            document.getElementById('checkoutSingleId').value = currentModalProductId;
+            document.getElementById('checkoutForm').submit();
+        } else if (data.status === 'login_required') {
+            window.location.href = "{% url 'login' %}";
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+    });
+}
     window.onclick = function (e) {
         if (e.target == document.getElementById('productModal')) closeModal();
     }
