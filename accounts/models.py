@@ -14,7 +14,8 @@ class CustomerUser(AbstractUser):
     interests= models.ManyToManyField('Interest', blank=True)
     gender = models.CharField(max_length=10, blank=True)
     age = models.PositiveIntegerField(null=True, blank=True)
-   
+    
+    has_set_interests = models.BooleanField(default=False)
 
 
     def __str__(self):

@@ -39,7 +39,7 @@ def login(request):
                 if user.role == 'SELLER':
                     return redirect('dashboard')
                 
-                if not user.interests.exists():
+                if not user.has_set_interests:
                     return redirect('select_interest')
                 
                 return redirect('home')
@@ -57,6 +57,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from .tokens import generate_token
+from django.contrib import messages
 
 def register(request):
     if request.user.is_authenticated:
@@ -124,22 +125,25 @@ def register(request):
 
 def activate(request, uidb64, token):
     try:
+        # १. UID डिकोड गर्ने
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = CustomerUser.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, CustomerUser.DoesNotExist):
         user = None
 
+    # २. टोकन चेक गर्ने र युजर एक्टिभेट गर्ने
     if user is not None and generate_token.check_token(user, token):
         user.is_active = True
         user.save()
-        auth_login(request, user)
         
-        if user.role == 'SELLER':
-            return redirect('dashboard')
-        else:
-            return redirect('select_interest')
+        if request.user.is_authenticated:
+            logout(request)
+
+        messages.success(request, "Your account has been activated successfully! You can now log in.")
+        return redirect('login') 
     else:
-        return render(request, 'pages/login.html', {"error": "Activation link is invalid or expired!"})
+        messages.error(request, "Activation link is invalid or expired!")
+        return redirect('login')
 @login_required
 def logout_view(request):
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
@@ -157,11 +161,18 @@ def select_interest(request):
         selected_ids = request.POST.getlist("interests")
         if selected_ids:
             request.user.interests.set(selected_ids)
-            return redirect("home")
+        
+        # सेभ गरेपछि पनि अर्को पटक यो पेज नदेखाउन True बनाउने
+        request.user.has_set_interests = True
+        request.user.save()
+        return redirect("home")
     return render(request, "pages/select_interest.html", {"interests": interests})
 
 def skip_interests(request):
-    request.session['skipped_interests'] = True
+    if request.user.is_authenticated:
+        # सेसनको साटो अब डेटाबेसमा permanent सेभ गर्ने
+        request.user.has_set_interests = True
+        request.user.save()
     return redirect('home')
     
 

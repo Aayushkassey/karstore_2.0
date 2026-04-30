@@ -21,7 +21,7 @@ from accounts.models import Interest, CustomerUser, CustomerActivity # Activity 
 def home(request):
     # 1. Basic redirections
     if request.user.is_authenticated and not (request.user.is_superuser or request.user.is_staff or request.user.role == 'SELLER'):
-        if request.user.role == 'CUSTOMER' and not request.user.interests.exists() and not request.session.get('skipped_interests', False):
+        if request.user.role == 'CUSTOMER' and not request.user.has_set_interests:
             return redirect('select_interest')
 
     query = request.GET.get('q', '').strip()
@@ -199,6 +199,9 @@ def add_product(request):
         category_id = request.POST.get("category")
         new_category_name = request.POST.get("new_category_name")
         image = request.FILES.get("image")
+        if image and image.size > 1 * 1024 * 1024: # 1MB भन्दा ठुलो भएमा
+            messages.error(request, "Image size must be less than 1MB!")
+            return render(request, 'pages/add_product.html', {'categories': categories})
         brand = request.POST.get("brand")
         stock = request.POST.get("stock")
         sku = request.POST.get("sku")

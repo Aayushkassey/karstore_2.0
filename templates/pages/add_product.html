@@ -75,6 +75,17 @@
         inputField.required = false;
     }
 }
+
+document.querySelector('input[name="image"]').onchange = function() {
+    const fileSize = this.files[0].size;
+    const limit = 1 * 1024 * 1024; 
+
+    if (fileSize > limit) {
+        alert("This image is too large! Please select a smaller image. (Max 1MB)");
+        this.value = ""; 
+    }
+};
+
 </script>
 
 {% endblock %}

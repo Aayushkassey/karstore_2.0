@@ -32,7 +32,14 @@ class Category(models.Model):
 #         return self.name
 
 
-    
+from django.core.exceptions import ValidationError
+
+def validate_image_size(image):
+    file_size = image.size
+    limit_mb = 1
+    if file_size > limit_mb * 1024 * 1024 :
+        raise ValidationError(f"Image size must be less than {limit_mb}MB")    
+
 class Product(models.Model):
 
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -62,7 +69,7 @@ class Product(models.Model):
     # shipping_information = models.TextField(blank=True, null=True)
     
     
-    image = models.ImageField(upload_to='products/' ,null=True, blank=True)
+    image = models.ImageField(upload_to='products/' ,null=True, blank=True, validators=[validate_image_size])
     image_url = models.URLField(max_length=500,blank=True, null=True)
     # thumbnail = models.ImageField(upload_to='products/thumbnails/', blank=True, null=True)
 
@@ -77,8 +84,14 @@ class Product(models.Model):
         return total
     
     @property
+    def display_image(self):
+        if self.image:
+            return self.image.url
+        return self.image_url
+    
+    @property
     def discounted_price(self):
-        """डिस्काउन्ट पछिको वास्तविक मूल्य निकाल्ने"""
+        
         if self.discount_percentage > 0:
             discount_amount = (self.price * self.discount_percentage) / 100
             return self.price - discount_amount
