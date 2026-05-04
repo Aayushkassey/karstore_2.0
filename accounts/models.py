@@ -1,19 +1,20 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 
 class CustomerUser(AbstractUser):
     ROLE_CHOICES = (
-        ('ADMIN', 'Admin'),
         ('SELLER', 'Seller'),
         ('CUSTOMER', 'Customer'),
     )
 
+    email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='CUSTOMER')
     
     interests= models.ManyToManyField('Interest', blank=True)
     gender = models.CharField(max_length=10, blank=True)
-    age = models.PositiveIntegerField(null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)])
     
     has_set_interests = models.BooleanField(default=False)
 

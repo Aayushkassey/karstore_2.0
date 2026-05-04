@@ -1,6 +1,37 @@
 {% load static %}
-<footer>
-    <p style="text-align: center; padding: 20px;">
-        &copy; 2026 KAR Store. All rights reserved.
-    </p>
+
+<footer class="site-footer">
+    <div class="footer-container">
+        <!-- कोलम १: बायाँ (Left Alignment) -->
+        <div class="footer-col f-left">
+            <div class="footer-logo-section">
+                <img src="{% static 'image/logo.png' %}" alt="KAR Store Logo" class="f-logo">
+                <ul class="f-address">
+                    <li><i class="fas fa-map-marker-alt"></i> Street 17, Nadipur</li>
+                    <li><i class="fas fa-map-marker-alt"></i> Pokhara, Nepal</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- कोलम २: केन्द्र (Center Alignment) -->
+        <div class="footer-col f-center">
+            <h4 class="f-title">To Know More</h4>
+            <a href="{% url 'about' %}" class="footer-link">About Us</a>
+        </div>
+
+        <!-- कोलम ३: दायाँ (Right Alignment) -->
+        <div class="footer-col f-right">
+            <h4 class="f-title">Contact Us</h4>
+            <ul class="f-contact">
+                <li><i class="fas fa-envelope"></i> karstoreinfo@gmail.com</li>
+                <li><i class="fas fa-phone"></i> +977-98XXXXXXXX</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- तलको भाग: Copyright -->
+    <div class="footer-bottom">
+        <p>&copy; 2026 <strong>KAR Store</strong>. All rights reserved.</p>
+    </div>
 </footer>
+

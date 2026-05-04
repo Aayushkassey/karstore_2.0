@@ -136,14 +136,16 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
         
-        if request.user.is_authenticated:
-            logout(request)
-
-        messages.success(request, "Your account has been activated successfully! You can now log in.")
-        return redirect('login') 
+        auth_login(request, user)
+        
+        if user.role == 'SELLER':
+            return redirect('dashboard')
+        else:
+            return redirect('select_interest')
     else:
         messages.error(request, "Activation link is invalid or expired!")
         return redirect('login')
+    
 @login_required
 def logout_view(request):
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
@@ -162,7 +164,7 @@ def select_interest(request):
         if selected_ids:
             request.user.interests.set(selected_ids)
         
-        # सेभ गरेपछि पनि अर्को पटक यो पेज नदेखाउन True बनाउने
+
         request.user.has_set_interests = True
         request.user.save()
         return redirect("home")
@@ -170,7 +172,7 @@ def select_interest(request):
 
 def skip_interests(request):
     if request.user.is_authenticated:
-        # सेसनको साटो अब डेटाबेसमा permanent सेभ गर्ने
+
         request.user.has_set_interests = True
         request.user.save()
     return redirect('home')
@@ -188,3 +190,7 @@ def check_email(request):
     exists = CustomerUser.objects.filter(email__iexact=value).exists()
     status = "<span style='color:red;'>Registered!</span>" if exists else "<span style='color:green;'>Available</span>"
     return HttpResponse(status)
+
+
+def about(request):
+    return render(request, 'pages/about.html')

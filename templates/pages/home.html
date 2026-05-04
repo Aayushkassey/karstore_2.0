@@ -63,7 +63,7 @@
 
     <div class="load-more-wrapper">
         {% if page_obj.has_next %}
-            <button id="load-more-btn" data-page="{{ page_obj.next_page_number }}">LOAD MORE</button>
+            <button id="load-more-btn" data-page="{{ page_obj.next_page_number }}" style="background: #f85606; color: #fff; border: none; padding: 10px 20px; font-weight: 600; cursor: pointer;">LOAD MORE</button>
         {% endif %}
         
         <div id="loading-spinner" style="display: none;">

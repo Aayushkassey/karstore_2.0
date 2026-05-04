@@ -213,7 +213,7 @@ body {
 .mini-price { color: var(--primary-orange); font-weight: 700; font-size: 13px; }
 .see-more { display: block; text-align: right; margin-top: 15px; font-size: 12px; color: var(--primary-orange); text-decoration: none; font-weight: 700; }
 
-.nav-addon-info { padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.2); }
+.nav-addon-info { padding-left: 20px; }
 
 
 .main-container { max-width: 1300px; margin: 0 auto; padding: 20px 15px; }
@@ -249,6 +249,118 @@ body {
 }
 .suggestion-item { padding: 12px 20px; cursor: pointer; transition: 0.2s; }
 .suggestion-item:hover { background: #fff5f0; color: var(--primary-orange); }
+
+
+
+
+/* footer*/
+    .site-footer {
+        background-color: #1a1a1a; 
+        color: #f4f4f4;
+        padding: 50px 0 20px 0;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .footer-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .footer-col {
+        flex: 1;
+        min-width: 250px;
+        margin-bottom: 30px;
+    }
+
+    /* Alignment Classes */
+    .f-left { text-align: left; }
+    .f-center { text-align: center; }
+    .f-right { text-align: right; }
+
+    /* लोगो स्टाइल */
+    .f-logo {
+        width:auto !important;
+        height: 40px;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    /* बायाँ पट्टिको लोगो र ट्यागलाइन मिलाउन */
+    .f-left .f-logo { margin-right: auto; }
+
+
+     .f-address {
+        list-style: none;
+        padding: 0;
+        font-family: poppins, sans-serif;
+    }
+
+    .f-address li {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        color: #ccc;
+        
+    }
+    
+
+    .f-title {
+        font-size: 1.2rem;
+        color: #fff;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    /* लिङ्क स्टाइल - डट हटाएर सिधै 'a' वा 'footer-link' प्रयोग गर्ने */
+    .footer-link {
+        color: #ffffff !important;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .footer-link:hover {
+        color: #007bff !important;
+        text-decoration: underline;
+    }
+
+    .f-contact {
+        list-style: none;
+        padding: 0;
+    }
+
+    .f-contact li {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        color: #ccc;
+    }
+
+    .footer-bottom {
+        text-align: center;
+        padding-top: 30px;
+        margin-top: 20px;
+        border-top: 1px solid #333;
+    }
+
+    .footer-bottom p {
+        font-size: 0.85rem;
+        color: #888;
+        margin: 0;
+    }
+
+    /* मोबाइलको लागि सबै सेन्टर बनाउने */
+    @media (max-width: 768px) {
+        .f-left, .f-center, .f-right {
+            text-align: center;
+        }
+        
+        .f-logo {
+            margin: 0 auto 15px auto;
+        }
+    }
+
 
 /* 6. MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {

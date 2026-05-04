@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 # Views import
-from .views import login, register, activate,select_interest, logout_view, check_username, check_email, skip_interests
+from .views import login, register, activate,select_interest, logout_view, check_username, check_email, skip_interests, about
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,6 +22,7 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('activate/<uidb64>/<token>/', activate, name='activate'),
     path('logout/', logout_view, name='logout'),
+    path('about/', about, name='about'),
     
 
     # --- यहाँ Password Reset को Paths हरु थप ---

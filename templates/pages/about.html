@@ -1,0 +1,131 @@
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .about-section {
+        padding: 80px 0;
+        background-color: #f9f9f9;
+        font-family: 'Poppins', sans-serif;
+    }
+    .about-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .about-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    .about-header h1 {
+        font-size: 2.5rem;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+    }
+    .about-header .underline {
+        width: 350px;
+        height: 3px;
+        background-color: #ff8a05;
+        margin: 0 auto;
+    }
+    .about-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        align-items: center;
+    }
+    .about-text {
+        flex: 1;
+        min-width: 300px;
+    }
+    .about-text p {
+        line-height: 1.8;
+        color: #555;
+        margin-bottom: 20px;
+    }
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 40px;
+    }
+    .feature-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    .feature-card i {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 15px;
+    }
+    .feature-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    .feature-card p {
+        font-size: 0.9rem;
+        color: #777;
+    }
+
+</style>
+
+<section class="about-section">
+    <div class="about-container">
+        <button onclick="window.location.href='/'" style=" color: #000000; text-align: left; border: none; padding: 10px 20px; cursor: pointer;">Back To Home</button>
+        <div class="about-header">
+            <h1>About KAR Store</h1>
+            <div class="underline"></div>
+        </div>
+        <div class="about-content">
+            <div class="about-text">
+                <p>
+                    Welcome to <strong>KAR Store</strong>, Pokhara's emerging digital marketplace. We are more than just an e-commerce platform; we are a technology-driven solution designed to simplify shopping while contributing to a cleaner community.
+                </p>
+                <p>
+                    Our platform integrates advanced <strong>Machine Learning</strong> recommendation engines to provide a personalized shopping experience, ensuring you find exactly what you need with minimal effort.
+                </p>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Smart Shopping</h3>
+                <p>Personalized product suggestions powered by hybrid recommendation models.</p>
+            </div>
+
+           
+
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <i class="fas fa-credit-card"></i>
+                <h3>Secure Payments</h3>
+                <p>Fast and reliable transactions via eSewa payment gateways.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <i class="fas fa-user-shield"></i>
+                <h3>Data Security</h3>
+                <p>Ensuring your data is safe with robust authentication and validation systems.</p>
+            </div>
+        </div> 
+        <div class="contact-info-footer" style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 30px;">
+            <h3 style="color: #333;">Get In Touch</h3>
+            <p style="color: #666;">If you have any questions about <strong>KAR Store</strong> initiative, feel free to reach out.</p>
+            <div style="margin-top: 15px;">
+                <span style="margin: 0 15px;"><i class="fas fa-envelope"></i> karstoreinfo@gmail.com</span>
+                <span style="margin: 0 15px;"><i class="fas fa-map-marker-alt"></i> Pokhara, Nepal</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

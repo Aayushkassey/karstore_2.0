@@ -97,14 +97,14 @@
 
 /* Forgot Password Link */
 .forgot-password {
-    text-align: right;
-    margin-top: 10px;
+    text-align: center;
+    margin-top: 15px;
     font-size: 13px;
 }
 
 .form-footer {
     text-align: center;
-    margin-top: 25px;
+    margin-top: 10px;
     font-size: 14px;
     color: #1f1f1f ;
 }

@@ -14,6 +14,7 @@ from .models import Product, Category
 from django.db.models import Exists, OuterRef, Value, BooleanField, Count
 
 from orders.models import Whistle
+# from accounts.ml_utils import get_recommendations
 
 from accounts.models import Interest, CustomerUser, CustomerActivity # Activity model import gareko
 
@@ -49,6 +50,7 @@ def home(request):
                 ).annotate(
                     is_whistle=Exists(user_whistles_ref)
                 ).distinct().order_by('-id')[:10]
+            
     # 3. Main Product List (Search or Featured)
     if query:
         words = query.split()
