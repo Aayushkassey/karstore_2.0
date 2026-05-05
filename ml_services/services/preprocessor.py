@@ -73,6 +73,14 @@ def build_user_features(user_id: int) -> dict:
     days_since_joined = (now - user.date_joined).days if user.date_joined else 0
     interests = list(user.interests.values_list('name', flat=True))
 
+    # Activity span: first to last activity timestamp
+    first_activity = activities.order_by('timestamp').first()
+    last_activity = activities.order_by('-timestamp').first()
+    activity_span_days = (
+        (last_activity.timestamp - first_activity.timestamp).days
+        if first_activity and last_activity else 0
+    )
+
     return {
         # Identity
         "user_id": user.id,
@@ -80,6 +88,7 @@ def build_user_features(user_id: int) -> dict:
         "gender": user.gender or "unknown",
         "interests": interests,
         "days_since_joined": days_since_joined,
+        "activity_span_days": activity_span_days,
 
         # Engagement
         "total_sessions": total_sessions,

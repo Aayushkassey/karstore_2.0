@@ -21,7 +21,11 @@ def get_churn_score(user_id: int) -> dict:
         }
 
     # Build exactly what the model expects
-    payload = _build_churn_payload(raw)
+    # payload = _build_churn_payload(raw)
+    payload = {
+        "user_id": user_id,
+        "features": _build_churn_payload(raw)
+    }
 
     try:
         response = requests.post(
