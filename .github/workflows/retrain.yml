@@ -1,5 +1,6 @@
 name: Weekly Model Retrain
 
+#corn shcedule reference: https://crontab.guru/#0_0_*_*_0
 on:
   schedule:
     # - cron: '0 0 * * 0'  # Every Sunday midnight UTC
@@ -8,66 +9,64 @@ on:
     # - cron: '*/30 * * * *'  # Every 30 minutes 
     # - cron: '*/10 * * * *'  # Every 10 minutes
     # - cron: '*/5 * * * *'   # Every 5 minutes
-
-
   workflow_dispatch:       # Allow manual trigger from GitHub UI
 
 jobs:
   retrain:
     runs-on: ubuntu-latest
-
+    
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      DJANGO_SETTINGS_MODULE: karstore.settings
+      DEBUG: 'False'
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_REPO_ID: kamalpokhara/srs-models
     steps:
-      # ── 1. CHECKOUT ──────────────────────────────────────────────────────
+      # 1. CHECKOUT REPOSITORY
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. PYTHON SETUP ──────────────────────────────────────────────────
+      # 2. PYTHON SETUP 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # ── 3. INSTALL DEPENDENCIES ──────────────────────────────────────────
+      # 3. INSTALL DEPENDENCIES 
       - name: Install dependencies
         run: |
           pip install django psycopg2-binary pandas numpy \
                       lightfm-next joblib matplotlib huggingface_hub \
-                      requests python-dotenv
+                      requests python-dotenv python-decouple \
+                      dj-database-url pillow 
 
-      # ── 4. EXPORT FRESH DATA FROM DB ─────────────────────────────────────
+      #  4. EXPORT FRESH DATA FROM DB
       - name: Export fresh data from database
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DJANGO_SETTINGS_MODULE: karstore.settings
         run: |
           python ml_services/automation/export_data.py
         
-        
-      # ── 5. COMPUTE POPULAR PRODUCTS ──────────────────────────────────────
+      #  5. COMPUTE POPULAR PRODUCTS 
       - name: Compute popular products
         run: |
           python ml_services/automation/popular.py
 
-      # ── 6. RETRAIN LIGHTFM ───────────────────────────────────────────────
+      #  6. RETRAIN LIGHTFM 
       - name: Retrain LightFM model
         run: |
           python ml_services/automation/retrain.py
 
-      # ── 7. PUSH TO HF HUB ────────────────────────────────────────────────
+      #  7. PUSH TO HF HUB 
       - name: Push models to Hugging Face Hub
-        env:
-          HF_TOKEN:   ${{ secrets.HF_TOKEN }}
-          HF_REPO_ID: kamalpokhara/srs-models
         run: |
           python ml_services/automation/push_to_hf.py
 
-      # ── 8. TRIGGER RENDER REDEPLOY ────────────────────────────────────────
+      #  8. TRIGGER RENDER REDEPLOY 
       - name: Trigger Render redeploy
         run: |
           curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
 
-      # ── 9. NOTIFY SUCCESS ────────────────────────────────────────────────
+      #  9. NOTIFY SUCCESS 
       - name: Print summary
         run: |
           echo "Retrain complete"
