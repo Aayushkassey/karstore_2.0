@@ -43,10 +43,7 @@ jobs:
       # 3. INSTALL DEPENDENCIES 
       - name: Install dependencies
         run: |
-          pip install django psycopg2-binary pandas numpy \
-                      lightfm-next joblib matplotlib huggingface_hub \
-                      requests python-dotenv python-decouple \
-                      dj-database-url pillow 
+          pip install -r requirements.txt 
 
       #  4. EXPORT FRESH DATA FROM DB
       - name: Export fresh data from database
