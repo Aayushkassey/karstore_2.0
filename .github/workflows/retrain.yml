@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install django psycopg2-binary pandas numpy \
-                      lightfm joblib matplotlib huggingface_hub \
+                      lightfm-next joblib matplotlib huggingface_hub \
                       requests python-dotenv
 
       # ── 4. EXPORT FRESH DATA FROM DB ─────────────────────────────────────
