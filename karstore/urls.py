@@ -51,6 +51,10 @@ urlpatterns = [
     path('check-username/', check_username, name='check_username'),
     path('check-email/', check_email, name='check_email'),
 
+    # 5. Retention App URLs kamal
+     path('api/retention/', include('retention.urls')),
+
+
 ]
 
 # Static ra Media handling

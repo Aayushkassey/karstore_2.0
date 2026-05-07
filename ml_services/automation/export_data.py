@@ -50,8 +50,13 @@ def export_interactions():
             'event_type', 'interaction_timestamp'
         ])
         for a in activities:
+            user_id_str = (
+                f"U{a.user.id - 54:06d}"   # synthetic: restore original U ID
+                if a.user.email.endswith('@synthetic.karstore.com')
+                else f"R{a.user.id:06d}"   # real users: R prefix
+            )
             writer.writerow([
-                f"U{a.user.id:06d}",
+                user_id_str,
                 a.product.id,
                 ACTION_MAP[a.action],
                 a.timestamp.isoformat()
@@ -78,8 +83,14 @@ def export_users():
         ])
         for u in customers:
             interests = list(u.interests.values_list('name', flat=True))
+            
+            user_id_str = (
+                f"U{u.id - 54:06d}"   # synthetic: restore original U ID
+                if u.email.endswith('@synthetic.karstore.com')
+                else f"R{u.id:06d}"   # real users: R prefix
+            )
             writer.writerow([
-                f"U{u.id:06d}",
+                user_id_str,
                 u.gender.lower() if u.gender else 'unknown',
                 u.age or 0,
                 str(interests),

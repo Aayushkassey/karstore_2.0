@@ -31,7 +31,7 @@ class CustomerUserAdmin(BaseUserAdmin):
     add_form = CustomerUserCreationForm
     
     list_display = ('username', 'email', 'role', 'gender', 'display_interests', 'age')
-    list_filter = ('role', 'gender')
+    list_filter = ('role', 'gender', 'id')
     search_fields = ('username', 'email')
     filter_horizontal = ('interests',)
 

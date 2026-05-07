@@ -6,8 +6,9 @@ RECSYS_USER_URL = "https://srs-api-3ndl.onrender.com/recommend/user/{user_id}"
 POPULAR_API_URL = "https://srs-api-3ndl.onrender.com/popular/"
 
 def _format_user_id(user_id: int) -> str:
-    """Convert Django integer user_id to ML model format: 17 → 'U000017'"""
-    return f"U{user_id:06d}"
+    """Convert Django integer user_id to ML model format: 17 → 'R000017'"""
+    # return f"U{user_id:06d}"
+    return f"R{user_id:06d}"
 
 def get_recommendations(user_id: int, top_n: int = 5, exclude_seen: list = None) -> dict:
     """

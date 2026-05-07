@@ -48,7 +48,8 @@ EXTERNAL_APPS = [
     'sellerpanel',
     'adminpanel',
     'payment',
-    'ml_services'
+    'ml_services',
+    'retention.apps.RetentionConfig',
 ]
 INSTALLED_APPS += EXTERNAL_APPS
 INSTALLED_APPS += ['django_cleanup.apps.CleanupConfig']
