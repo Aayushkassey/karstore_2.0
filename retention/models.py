@@ -58,3 +58,38 @@ class RetentionEmail(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.email_type} @ {self.sent_at.date()}"
+
+class UserRecommendation(models.Model):
+    """
+    Stores daily precomputed recommendations per user.
+    Updated by daily scheduler. Read by home page view.
+    """
+    user         = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='recommendation'
+    )
+    product_ids  = models.JSONField(default=list)
+    is_cold_start = models.BooleanField(default=True)
+    source       = models.CharField(max_length=20, default='popular')
+    updated_at   = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'User Recommendations'
+
+    def __str__(self):
+        return f"{self.user.username} — {self.source} ({self.updated_at.date()})"
+    
+class PopularProducts(models.Model):
+    """
+    Stores latest popular product IDs.
+    Single row, updated daily.
+    """
+    product_ids = models.JSONField(default=list)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Popular Products Cache'
+
+    def __str__(self):
+        return f"Popular products — {self.updated_at.date()}"

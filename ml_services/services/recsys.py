@@ -66,13 +66,13 @@ def get_recommendations_by_id(user_id: int, top_n: int = 5) -> dict:
     except requests.exceptions.RequestException:
         return get_popular_products(top_n)
 
-def get_popular_products(top_n: int = 5) -> dict:
+def get_popular_products(top_n: int = 200) -> dict:
     """
     GET /popular/
     Fallback for failures. No user needed.
     """
     try:
-        response = requests.get(POPULAR_API_URL, timeout=15)
+        response = requests.get(POPULAR_API_URL, params={"top_n": top_n}, timeout=15)
         response.raise_for_status()
         data = response.json()
 

@@ -18,6 +18,10 @@ from orders.models import Whistle
 
 from accounts.models import Interest, CustomerUser, CustomerActivity # Activity model import gareko
 
+from ml_services.services.recsys import get_popular_products
+from ml_services.services.recsys import get_recommendations, get_popular_products
+from retention.models import UserRecommendation, PopularProducts
+
 # 1. Main Home View (Search + Random Discovery)
 def home(request):
     # 1. Basic redirections
@@ -27,30 +31,97 @@ def home(request):
 
     query = request.GET.get('q', '').strip()
     all_categories = Category.objects.all()
-    highly_searched = Product.objects.annotate(
-        num_sales=Count('order')
-    ).order_by('-num_sales')[:10]
 
-    # यदि अर्डर नै छैन भने (नयाँ साइटमा)
-    if not highly_searched.exists() or highly_searched[0].num_sales == 0:
-        highly_searched = Product.objects.all().order_by('?')[:10]
+    # highly_searched = Product.objects.annotate(
+    #     num_sales=Count('order')
+    # ).order_by('-num_sales')[:10]
 
-    # २. Popular Discovery / Recommended (यसलाई पछि ML ले ह्यान्डल गर्छ)
-    # अहिलेलाई यो सेक्सनमा तिम्रो इन्ट्रेस्ट वाला लजिक वा सिम्पल रेकमेन्डेसन राख
+    # # यदि अर्डर नै छैन भने (नयाँ साइटमा)
+    # if not highly_searched.exists() or highly_searched[0].num_sales == 0:
+    #     highly_searched = Product.objects.all().order_by('?')[:10]
+
+    try:
+        pop_cache = PopularProducts.objects.first()
+        popular_ids = pop_cache.product_ids[:10] if pop_cache else []
+    except Exception:
+        popular_ids = []
+
+    if popular_ids:
+        if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+            user_whistles_ref = Whistle.objects.filter(
+                user=request.user, product=OuterRef('pk')
+            )
+            highly_searched = Product.objects.filter(
+                id__in=popular_ids, stock__gt=0
+            ).annotate(is_whistle=Exists(user_whistles_ref))
+        else:
+            highly_searched = Product.objects.filter(
+                id__in=popular_ids, stock__gt=0
+            ).annotate(is_whistle=Value(False, output_field=BooleanField()))
+
+        id_order = {pid: idx for idx, pid in enumerate(popular_ids)}
+        highly_searched = sorted(highly_searched, key=lambda p: id_order.get(p.id, 99))
+    else:
+        # fallback to DB order count
+        highly_searched = Product.objects.annotate(
+            num_sales=Count('order')
+        ).order_by('-num_sales')[:10]
+
+    
+    
+    # २. Popular Discovery / Recommended 
     recommended_products = None
     if not query and request.user.is_authenticated and request.user.role == 'CUSTOMER':
-        if request.user.interests.exists():
-            interest_names = request.user.interests.values_list('name', flat=True)
-            user_whistles_ref = Whistle.objects.filter(
-                user=request.user, 
-                product=OuterRef('pk')
-            )
-            recommended_products = Product.objects.filter(
-                category__name__in=interest_names
-                ).annotate(
-                    is_whistle=Exists(user_whistles_ref)
-                ).distinct().order_by('-id')[:10]
-            
+        user_whistles_ref = Whistle.objects.filter(
+            user=request.user, product=OuterRef('pk')
+        )
+
+        try:
+            user_rec = UserRecommendation.objects.get(user=request.user)
+            product_ids = user_rec.product_ids[:10] #8
+            is_cold = user_rec.is_cold_start
+
+            if product_ids and not is_cold:
+                # Personalized from DB cache
+                recommended_products = Product.objects.filter(
+                    id__in=product_ids, stock__gt=0
+                ).annotate(is_whistle=Exists(user_whistles_ref))
+                id_order = {pid: idx for idx, pid in enumerate(product_ids)}
+                recommended_products = sorted(
+                    recommended_products,
+                    key=lambda p: id_order.get(p.id, 99)
+                )
+            else:
+                raise ValueError("cold start")
+
+        except (UserRecommendation.DoesNotExist, ValueError):
+            # No cache yet — fallback to interest filter
+            if request.user.interests.exists():
+                interest_names = list(
+                    request.user.interests.values_list('name', flat=True)
+                )
+                # Try popular cache filtered by interests
+                pop_cache = PopularProducts.objects.first()
+                pop_ids = pop_cache.product_ids if pop_cache else []
+
+                if pop_ids:
+                    recommended_products = Product.objects.filter(
+                        id__in=pop_ids,
+                        category__name__in=interest_names,
+                        stock__gt=0
+                    ).annotate(
+                        is_whistle=Exists(user_whistles_ref)
+                    ).distinct()[:10] #8
+
+                if not recommended_products:
+                    # Final fallback — direct DB interest filter
+                    recommended_products = Product.objects.filter(
+                        category__name__in=interest_names,
+                        stock__gt=0
+                    ).annotate(
+                        is_whistle=Exists(user_whistles_ref)
+                    ).distinct().order_by('-id')[:10] #8 #10    
+
     # 3. Main Product List (Search or Featured)
     if query:
         words = query.split()

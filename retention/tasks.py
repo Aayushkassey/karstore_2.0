@@ -7,7 +7,112 @@ from products.models import Product
 from retention.models import ChurnRecord, RetentionEmail
 from ml_services.services.churn import get_churn_score
 from ml_services.services.recsys import get_recommendations, get_popular_products
+import time
+import requests
+from retention.models import UserRecommendation, PopularProducts
 
+def wake_ml_api(max_wait=240, interval=15):
+    """
+    Ping ML API health endpoint until it wakes up.
+    Render free tier takes ~30-60s cold start.
+    max_wait: maximum seconds to wait (default 4 minutes)
+    interval: seconds between pings (default 15s)
+    """
+
+    HEALTH_URL = "https://srs-api-3ndl.onrender.com/health"
+    print(f"[{timezone.now()}] Waking ML API...")
+
+    waited = 0
+    while waited < max_wait:
+        try:
+            response = requests.get(HEALTH_URL, timeout=10)
+            if response.status_code == 200:
+                print(f"  ML API is awake after {waited}s")
+                return True
+        except Exception:
+            pass
+
+        print(f"  API sleeping... retrying in {interval}s (waited {waited}s)")
+        time.sleep(interval)
+        waited += interval
+
+    print(f"  ML API did not wake after {max_wait}s — proceeding anyway")
+    return False
+
+def precompute_all():
+    """
+    Daily job — runs after scoring:
+    1. Score all users (churn) → ChurnRecord
+    2. Get recommendations for all users → UserRecommendation
+    3. Get popular products → PopularProducts
+    """
+    print(f"[{timezone.now()}] Starting daily precomputation...")
+    # Wake API first before any ML calls
+    wake_ml_api(max_wait=240, interval=15)
+
+    print(f"[{timezone.now()}] Starting daily precomputation...")
+
+    # ── 1. SCORE ALL USERS ────────────────────────────────────────────────
+    score_all_users()
+
+    # ── 2. RECOMMENDATIONS PER USER ───────────────────────────────────────
+    customers = CustomerUser.objects.filter(
+        role='CUSTOMER',
+        is_active=True
+    ).exclude(email__endswith='@synthetic.karstore.com')
+    pop_cache = PopularProducts.objects.first()
+    pop_ids = pop_cache.product_ids if pop_cache else []
+    rec_updated = 0
+    for user in customers:
+        try:
+            recs = get_recommendations(user.id, top_n=10)
+            product_ids = recs.get('recommendations', [])
+            is_cold = recs.get('is_cold_start', True)
+            #if cold , filll with interests + popular
+            if is_cold or not product_ids:
+                if pop_ids and user.interests.exists():
+                    interest_names = list(user.interests.values_list('name', flat=True))
+                    interest_product_ids = list(
+                        Product.objects.filter(
+                            id__in=pop_ids,
+                            category__name__in=interest_names,
+                            stock__gt=0
+                        ).values_list('id', flat=True)[:10]
+                )
+                    product_ids = interest_product_ids if interest_product_ids else pop_ids[:10]
+                elif pop_ids:
+                    product_ids = pop_ids[:10]
+
+            UserRecommendation.objects.update_or_create(
+                user=user,
+                defaults={
+                    'product_ids':   product_ids,               #computed product ids
+                    'is_cold_start': is_cold,
+                    'source':        recs.get('source', 'popular'),
+                }
+            )
+            rec_updated += 1
+        except Exception as e:
+            print(f"  Rec failed for {user.username}: {e}")
+
+    print(f"  Recommendations updated: {rec_updated}")
+
+    # ── 3. POPULAR PRODUCTS ───────────────────────────────────────────────
+    try:
+        popular = get_popular_products(top_n=200) #getting from api call
+        product_ids = popular.get('recommendations', [])
+        if product_ids:
+            obj = PopularProducts.objects.first()
+            if obj:
+                obj.product_ids = product_ids
+                obj.save()
+            else:
+                PopularProducts.objects.create(product_ids=product_ids)
+            print(f"  Popular products updated: {len(product_ids)} items")
+    except Exception as e:
+        print(f"  Popular update failed: {e}")
+
+    print(f"[{timezone.now()}] Precomputation complete.")
 
 def score_all_users():
     """
@@ -87,31 +192,57 @@ def send_retention_emails():
             continue
 
         # Check if already emailed in last 7 days
-        recently_emailed = RetentionEmail.objects.filter(
-            user      = user,
-            sent_at__gte = seven_days_ago,
-            was_sent  = True
-        ).exists()
+        # recently_emailed = RetentionEmail.objects.filter(
+        #     user      = user,
+        #     sent_at__gte = seven_days_ago,
+        #     was_sent  = True
+        # ).exists()    
 
-        if recently_emailed:
-            skipped += 1
-            continue
+        # if recently_emailed:
+        #     skipped += 1
+        #     continue
 
-        # Get recommendations for email
-        recs = get_recommendations(user.id, top_n=3)
-        product_ids = recs.get('recommendations', [])
+        # # Get recommendations for email
+        # recs = get_recommendations(user.id, top_n=3)
+        # product_ids = recs.get('recommendations', [])
 
-        if not product_ids:
-            recs = get_popular_products(top_n=3)
-            product_ids = recs.get('recommendations', [])
+        # if not product_ids:
+        #     recs = get_popular_products(top_n=3)
+        #     product_ids = recs.get('recommendations', [])
+
+        # Get recommendations from DB cache (no API call)
+        
+        try:
+            user_rec = UserRecommendation.objects.get(user=user)
+            product_ids = user_rec.product_ids[:3]
+            is_cold = user_rec.is_cold_start
+        except UserRecommendation.DoesNotExist:
+            product_ids = []
+            is_cold = True  
 
         products = Product.objects.filter(
             id__in  = product_ids,
             stock__gt = 0
         )[:3]
 
+        if is_cold or not product_ids:
+            pop_cache = PopularProducts.objects.first()
+            pop_ids = pop_cache.product_ids if pop_cache else []
+            if pop_ids and user.interests.exists():
+                interest_names = list(user.interests.values_list('name', flat=True))
+                interest_products = Product.objects.filter(
+                    id__in=pop_ids,
+                    category__name__in=interest_names,
+                    stock__gt=0
+                ).values_list('id', flat=True)[:3]
+                product_ids = list(interest_products)
+            elif pop_ids:
+                product_ids = pop_ids[:3]
+
+        
+
         # Send email
-        success = _send_retention_email(user, products, record.churn_probability)
+        success = _send_retention_email(user, products, record.churn_probability, is_cold_start=is_cold)
 
         RetentionEmail.objects.create(
             user       = user,
@@ -128,49 +259,34 @@ def send_retention_emails():
     print(f"  Sent: {sent}, Skipped: {skipped}")
     return {"sent": sent, "skipped": skipped}
 
-
-def _send_retention_email(user, products, churn_probability):
-    """
-    Send personalized retention email with discount + recommendations.
-    """
+def _send_retention_email(user, products, churn_probability, is_cold_start=False):
     try:
-        product_lines = ""
-        for p in products:
-            if p.discount_percentage and p.discount_percentage > 0: 
-                product_lines += f"  • {p.name} - Get {p.discount_percentage:.0f}% off!\n"
-            else:
-                product_lines += f"  • {p.name} — Rs. {p.price:.0f}\n"  
+        from django.template.loader import render_to_string
+        from django.core.mail import EmailMultiAlternatives
 
-        if not product_lines:
-            product_lines = "  • Check out our latest products!\n"
+        SITE_URL = "http://127.0.0.1:8000"  # change after deploy
 
-        risk_pct = int(churn_probability * 100)
-
-        subject = "We miss you at KAR Store - Here's a special offer just for you!"
-
-        message = f"""
-Hi {user.username},
-
-We noticed you haven't visited us in a while and we miss you!
-
-Products we think you'll love:
-{product_lines}
-
-Don't miss out — this offer is valid for 7 days only.
-
-Shop now at KAR Store!
-
-Best regards,
-KAR Store Team
-        """.strip()
-
-        send_mail(
-            subject         = subject,
-            message         = message,
-            from_email      = settings.DEFAULT_FROM_EMAIL,
-            recipient_list  = [user.email],
-            fail_silently   = False,
+        subject = (
+            "Welcome to KAR Store — Products picked for you! 🎁"
+            if is_cold_start else
+            "We miss you at KAR Store — Deals just for you 🎁"
         )
+
+        html_content = render_to_string('emails/retention_email.html', {
+            'user':          user,
+            'products':      products,
+            'is_cold_start': is_cold_start,
+            'SITE_URL':      SITE_URL,
+        })
+
+        email = EmailMultiAlternatives(
+            subject    = subject,
+            body       = f"Hi {user.username}, visit KAR Store for personalized deals!",
+            from_email = settings.DEFAULT_FROM_EMAIL,
+            to         = [user.email],
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)
         return True
 
     except Exception as e:

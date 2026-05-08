@@ -1,226 +1,952 @@
-{% extends "admin/index.html" %} {% block content %}
-<div class="container-fluid">
-  <div class="row mb-3">
-    <div class="col-md-3">
-      <div class="small-box bg-primary shadow-sm">
-        <div class="inner">
-          <h3>{{ user_count|default:0 }}</h3>
-          <p>Total Users</p>
-        </div>
-        <div class="icon"><i class="fas fa-users"></i></div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="small-box bg-info shadow-sm">
-        <div class="inner">
-          <h3>{{ product_count|default:0 }}</h3>
-          <p>Total Products</p>
-        </div>
-        <div class="icon"><i class="fas fa-box-open"></i></div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="small-box bg-secondary shadow-sm">
-        <div class="inner">
-          <h3>{{ activity_count|default:0 }}</h3>
-          <p>Total Activities</p>
-        </div>
-        <div class="icon"><i class="fas fa-history"></i></div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="small-box bg-success shadow-sm">
-        <div class="inner">
-          <h3>{{ payment_count|default:0 }}</h3>
-          <p>Total Payments</p>
-        </div>
-        <div class="icon"><i class="fas fa-money-bill-wave"></i></div>
-      </div>
-    </div>
-  </div>
+{% extends "admin/index.html" %}
+{% block content %}
 
-  <div class="row mb-4">
-    <div class="col-md-7">
-      <div class="card card-outline card-primary h-100 shadow-sm">
-        <div class="card-header border-0">
-          <h3 class="card-title" style="font-weight: bold">
-            <i class="fas fa-brain mr-1"></i> AI Performance: Recommendation &
-            Retention
-          </h3>
+<div class="container-fluid py-4">
+
+  <!-- ===================== TOP STATS ===================== -->
+  <div class="row">
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="info-card primary-card">
+        <div class="card-icon">
+          <i class="fas fa-users"></i>
         </div>
-        <div class="card-body">
-          <div style="height: 280px">
-            <canvas id="hybridModelChart"></canvas>
+
+        <div class="card-info">
+          <p>Real Users</p>
+          <h2>{{ user_count|default:0 }}</h2>
+
+          <div class="mini-progress">
+            <div class="mini-progress-bar bg-primary-gradient"></div>
           </div>
         </div>
+
+        <div class="card-glow"></div>
       </div>
     </div>
 
-    <div class="col-md-5">
-      <div class="card card-outline card-success h-100 shadow-sm">
-        <div class="card-header border-0">
-          <h3 class="card-title" style="font-weight: bold">
-            <i class="fas fa-chart-pie mr-1"></i> Live Payment Analytics
-          </h3>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="info-card success-card">
+        <div class="card-icon">
+          <i class="fas fa-box-open"></i>
         </div>
-        <div class="card-body">
-          <div style="height: 280px">
-            <canvas id="paymentStatusChart"></canvas>
+
+        <div class="card-info">
+          <p>Products</p>
+          <h2>{{ product_count|default:0 }}</h2>
+
+          <div class="mini-progress">
+            <div class="mini-progress-bar bg-success-gradient"></div>
           </div>
         </div>
+
+        <div class="card-glow"></div>
       </div>
     </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="info-card warning-card">
+        <div class="card-icon">
+          <i class="fas fa-money-bill-wave"></i>
+        </div>
+
+        <div class="card-info">
+          <p>Payments</p>
+          <h2>{{ payment_count|default:0 }}</h2>
+
+          <div class="mini-progress">
+            <div class="mini-progress-bar bg-warning-gradient"></div>
+          </div>
+        </div>
+
+        <div class="card-glow"></div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="info-card secondary-card">
+        <div class="card-icon">
+          <i class="fas fa-history"></i>
+        </div>
+
+        <div class="card-info">
+          <p>Activities</p>
+          <h2>{{ activity_count|default:0 }}</h2>
+
+          <div class="mini-progress">
+            <div class="mini-progress-bar bg-secondary-gradient"></div>
+          </div>
+        </div>
+
+        <div class="card-glow"></div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- ===================== CHURN STATS ===================== -->
 
   <div class="row">
-    <div class="col-lg-9 col-12" id="original-tables-target"></div>
-    <div class="col-lg-3 col-12" id="original-sidebar-target"></div>
+
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="risk-card risk-high">
+        <div class="risk-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+
+        <div>
+          <h6>High Risk Users</h6>
+          <h2>{{ churn_high|default:0 }}</h2>
+          <small>Churn ≥ 65%</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="risk-card risk-medium">
+        <div class="risk-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+
+        <div>
+          <h6>Medium Risk Users</h6>
+          <h2>{{ churn_medium|default:0 }}</h2>
+          <small>Churn 35–65%</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="risk-card risk-low">
+        <div class="risk-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+
+        <div>
+          <h6>Low Risk Users</h6>
+          <h2>{{ churn_low|default:0 }}</h2>
+          <small>Churn &lt; 35%</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== SEND EMAILs ===================== -->
+<!-- DEMO: Send Retention Emails Button -->
+<div class="row mb-3">
+  <div class="col-12">
+    <button 
+      id="sendEmailBtn" 
+      type="button"
+      style="background:#dc3545;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;"
+    >
+      <i class="fas fa-envelope mr-2"></i> Send Retention Emails
+    </button>
+    <span id="emailStatus" style="margin-left:15px;font-weight:600;"></span>
   </div>
 </div>
+  <!-- ===================== CHARTS ===================== -->
 
-<div id="raw-django-content" style="display: none">{{ block.super }}</div>
+  <div class="row">
 
+    <div class="col-lg-6 mb-4">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <h5>
+            <i class="fas fa-chart-pie text-danger mr-2"></i>
+            Churn Risk Distribution
+          </h5>
+        </div>
+
+        <div class="dashboard-body">
+          <canvas id="churnPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <h5>
+            <i class="fas fa-chart-pie text-success mr-2"></i>
+            Payment Status
+          </h5>
+        </div>
+
+        <div class="dashboard-body">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== TREND ===================== -->
+
+  <div class="row">
+
+    <div class="col-12 mb-4">
+      <div class="dashboard-card">
+        <div class="dashboard-header">
+          <h5>
+            <i class="fas fa-chart-line text-primary mr-2"></i>
+            7-Day Churn Probability Trend
+          </h5>
+        </div>
+
+        <div class="dashboard-body trend-body">
+          <canvas id="churnTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== TABLES ===================== -->
+
+  <div class="row">
+    <div class="col-lg-9 col-12" id="main-tables"></div>
+    <div class="col-lg-3 col-12" id="side-tables"></div>
+  </div>
+
+</div>
+
+<div id="raw-content" style="display:none">
+  {{ block.super }}
+</div>
+<!-- ------------------------------------------------------------------SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-      // AI Trend Chart (ML Data)
-      const aiCtx = document.getElementById('hybridModelChart').getContext('2d');
-      new Chart(aiCtx, {
-          type: 'line',
-          data: {
-              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-              datasets: [
-                  {
-                      label: 'LightFM Success',
-                      data: [65, 78, 66, 89, 92, 105, 120],
-                      borderColor: '#007bff',
-                      backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                      fill: true,
-                      tension: 0.4
-                  },
-                  {
-                      label: 'XGBoost Retention',
-                      data: [40, 55, 45, 70, 65, 85, 95],
-                      borderColor: '#28a745',
-                      backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                      fill: true,
-                      tension: 0.4
-                  }
-              ]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
+document.addEventListener('DOMContentLoaded', function () {
+  // ===================== MOVE JAZZMIN TABLES =====================
 
-      // Payment Doughnut Chart (LIVE DATA with Pending)
-      const payCtx = document.getElementById('paymentStatusChart').getContext('2d');
-      new Chart(payCtx, {
-          type: 'doughnut',
-          data: {
-              labels: ['Success', 'Failure', 'Pending'],
-              datasets: [{
-                  data: [
-                      {{ success_payments|default:0 }},
-                      {{ failed_payments|default:0 }},
-                      {{ pending_payments|default:0 }}
-                  ],
-                  backgroundColor: ['#28a745', '#dc3545', '#ffc107'], // Success=Green, Fail=Red, Pending=Yellow
-                  borderWidth: 4,
-                  hoverOffset: 10
-              }]
-          },
-          options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              cutout: '70%',
-              plugins: { legend: { position: 'bottom' } }
+  const raw = document.getElementById('raw-content');
+
+  const main = raw.querySelector('.col-lg-9.col-12');
+  const side = raw.querySelector('.col-lg-3.col-12');
+
+  if (main)
+    document.getElementById('main-tables').innerHTML = main.innerHTML;
+
+  if (side)
+    document.getElementById('side-tables').innerHTML = side.innerHTML;
+
+  // ===================== GRADIENTS =====================
+
+  const trendCtx = document.getElementById('churnTrendChart').getContext('2d');
+
+  const trendGradient = trendCtx.createLinearGradient(0, 0, 0, 300);
+
+  trendGradient.addColorStop(0, 'rgba(99,102,241,0.35)');
+  trendGradient.addColorStop(1, 'rgba(99,102,241,0.02)');
+
+  // ===================== CHURN PIE =====================
+
+  new Chart(document.getElementById('churnPieChart'), {
+
+    type: 'doughnut',
+
+    data: {
+      labels: ['High Risk', 'Medium Risk', 'Low Risk'],
+      datasets: [{
+        data: [
+          {{ churn_high|default:0 }},
+          {{ churn_medium|default:0 }},
+          {{ churn_low|default:0 }}
+        ],
+
+        backgroundColor: [
+          '#ef4444',
+          '#f59e0b',
+          '#22c55e'
+        ],
+
+        borderWidth: 0,
+        hoverOffset: 15
+      }]
+    },
+
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '72%',
+
+      plugins: {
+
+        legend: {
+          position: 'bottom',
+
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: {
+              size: 13,
+              weight: '600'
+            }
           }
-      });
+        },
 
-      // Move Jazzmin Elements
-      const rawContent = document.getElementById('raw-django-content');
-      const mainContent = rawContent.querySelector('.col-lg-9.col-12');
-      const sidebarContent = rawContent.querySelector('.col-lg-3.col-12');
-      if (mainContent) document.getElementById('original-tables-target').innerHTML = mainContent.innerHTML;
-      if (sidebarContent) document.getElementById('original-sidebar-target').innerHTML = sidebarContent.innerHTML;
+        tooltip: {
+          backgroundColor: '#111827',
+          padding: 14,
+
+          callbacks: {
+            label: function(ctx) {
+
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+
+              const pct = total > 0
+                ? ((ctx.raw/total)*100).toFixed(1)
+                : 0;
+
+              return `${ctx.label}: ${pct}%`;
+            }
+          }
+        }
+      }
+    }
   });
+
+
+  (function() {
+    // 1. CSS Injection (So you don't need a separate file)
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #sendEmailBtn:hover { background: #bb2d3b !important; }
+        #sendEmailBtn:active { transform: scale(0.96); }
+        #sendEmailBtn { transition: all 0.1s ease; }
+    `;
+    document.head.appendChild(style);
+
+    function init() {
+        const btn = document.getElementById('sendEmailBtn');
+        const status = document.getElementById('emailStatus');
+
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+            console.log("CLICK DETECTED - Starting Fetch...");
+            
+            // UI Feedback: Loading
+            btn.disabled = true;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+            
+            status.style.color = '#ffc107';
+            status.innerText = 'Processing...';
+
+            fetch('/api/retention/send-emails/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || ''
+                }
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('Server error');
+                return r.json();
+            })
+            .then(data => {
+                status.style.color = '#28a745';
+                status.innerText = `✓ Sent: ${data.sent}, Skipped: ${data.skipped}`;
+            })
+            .catch(err => {
+                console.error(err);
+                status.style.color = '#dc3545';
+                status.innerText = '✗ Failed';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            });
+        });
+    }
+
+    // Ensure the script runs even if loaded after DOM is ready
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        init();
+    } else {
+        document.addEventListener("DOMContentLoaded", init);
+    }
+})();
+  // ===================== PAYMENT CHART =====================
+
+  new Chart(document.getElementById('paymentChart'), {
+
+    type: 'doughnut',
+
+    data: {
+
+      labels: ['Success', 'Failed', 'Pending'],
+
+      datasets: [{
+        data: [
+          {{ success_payments|default:0 }},
+          {{ failed_payments|default:0 }},
+          {{ pending_payments|default:0 }}
+        ],
+
+        backgroundColor: [
+          '#22c55e',
+          '#ef4444',
+          '#f59e0b'
+        ],
+
+        borderWidth: 0,
+        hoverOffset: 15
+      }]
+    },
+
+    options: {
+
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '72%',
+
+      plugins: {
+
+        legend: {
+          position: 'bottom',
+
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: {
+              size: 13,
+              weight: '600'
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // ===================== TREND LINE =====================
+
+  new Chart(document.getElementById('churnTrendChart'), {
+
+    type: 'line',
+
+    data: {
+
+      labels: {{ trend_labels|safe }},
+
+      datasets: [{
+        label: 'Average Churn Probability',
+
+        data: {{ trend_values|safe }},
+
+        borderColor: '#6366f1',
+
+        backgroundColor: trendGradient,
+
+        fill: true,
+
+        tension: 0.45,
+
+        pointRadius: 5,
+
+        pointHoverRadius: 8,
+
+        pointBackgroundColor: '#6366f1',
+
+        borderWidth: 3
+      }]
+    },
+
+    options: {
+
+      responsive: true,
+      maintainAspectRatio: false,
+
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+
+      scales: {
+
+        x: {
+          grid: {
+            display: false
+          }
+        },
+
+        y: {
+
+          min: 0,
+          max: 1,
+
+          grid: {
+            color: 'rgba(148,163,184,.15)'
+          },
+
+          ticks: {
+            callback: val => (val * 100).toFixed(0) + '%'
+          }
+        }
+      },
+
+      plugins: {
+
+        legend: {
+          labels: {
+            usePointStyle: true
+          }
+        },
+
+        tooltip: {
+
+          backgroundColor: '#111827',
+
+          callbacks: {
+            label: ctx =>
+              ` ${(ctx.raw * 100).toFixed(1)}% churn probability`
+          }
+        }
+      }
+    }
+  });
+
+});
 </script>
 
 <style>
-  /* १. Navbar र Logout मेनुलाई सधैं दायाँ (Right) राख्न */
-  .navbar-nav.ml-auto {
-    margin-left: auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center;
+
+:root{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+
+  --radius:22px;
+
+  --shadow:
+    0 10px 40px rgba(2,6,23,.08);
+
+  --glass:
+    rgba(255,255,255,.7);
+}
+
+body{
+  background:
+    linear-gradient(
+      135deg,
+      #eef2ff,
+      #f8fafc
+    );
+}
+
+.content-wrapper{
+  background: transparent !important;
+}
+
+/* ===================== INFO CARDS ===================== */
+
+.info-card{
+
+  position: relative;
+
+  overflow:hidden;
+
+  border-radius: var(--radius);
+
+  padding: 26px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:18px;
+
+  background: var(--glass);
+
+  backdrop-filter: blur(12px);
+
+  box-shadow: var(--shadow);
+
+  transition: .35s ease;
+}
+
+.info-card:hover{
+
+  transform:
+    translateY(-8px)
+    scale(1.01);
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.12);
+}
+
+.card-icon{
+
+  width:72px;
+  height:72px;
+
+  border-radius:20px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:white;
+
+  font-size:1.8rem;
+
+  flex-shrink:0;
+}
+
+.primary-card .card-icon{
+  background: linear-gradient(135deg,#4f46e5,#6366f1);
+}
+
+.success-card .card-icon{
+  background: linear-gradient(135deg,#10b981,#22c55e);
+}
+
+.warning-card .card-icon{
+  background: linear-gradient(135deg,#f59e0b,#fbbf24);
+}
+
+.secondary-card .card-icon{
+  background: linear-gradient(135deg,#475569,#64748b);
+}
+
+.card-info p{
+  margin:0;
+  color:var(--muted);
+  font-weight:600;
+  font-size:.95rem;
+}
+
+.card-info h2{
+
+  margin:6px 0 14px;
+
+  font-size:2.1rem;
+
+  font-weight:800;
+
+  color:var(--text);
+}
+
+.card-glow{
+
+  position:absolute;
+
+  width:180px;
+  height:180px;
+
+  background: rgba(255,255,255,.35);
+
+  border-radius:50%;
+
+  top:-70px;
+  right:-70px;
+}
+
+.mini-progress{
+  height:6px;
+  width:100%;
+  background:#e2e8f0;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.mini-progress-bar{
+  height:100%;
+  width:75%;
+  border-radius:999px;
+}
+
+.bg-primary-gradient{
+  background: linear-gradient(90deg,#4f46e5,#818cf8);
+}
+
+.bg-success-gradient{
+  background: linear-gradient(90deg,#10b981,#34d399);
+}
+
+.bg-warning-gradient{
+  background: linear-gradient(90deg,#f59e0b,#fcd34d);
+}
+
+.bg-secondary-gradient{
+  background: linear-gradient(90deg,#475569,#94a3b8);
+}
+
+/* ===================== RISK CARDS ===================== */
+
+.risk-card{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:18px;
+
+  padding:24px;
+
+  border-radius:22px;
+
+  color:white;
+
+  position:relative;
+
+  overflow:hidden;
+
+  box-shadow: var(--shadow);
+
+  transition:.3s ease;
+}
+
+.risk-card:hover{
+  transform: translateY(-6px);
+}
+
+.risk-high{
+  background:
+    linear-gradient(
+      135deg,
+      #ef4444,
+      #dc2626
+    );
+}
+
+.risk-medium{
+  background:
+    linear-gradient(
+      135deg,
+      #f59e0b,
+      #d97706
+    );
+}
+
+.risk-low{
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #16a34a
+    );
+}
+
+.risk-icon{
+
+  width:65px;
+  height:65px;
+
+  border-radius:18px;
+
+  background: rgba(255,255,255,.18);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:1.6rem;
+}
+
+.risk-card h2{
+  font-size:2rem;
+  margin:4px 0;
+  font-weight:800;
+}
+
+.risk-card h6{
+  margin:0;
+  opacity:.9;
+  font-weight:600;
+}
+
+/* ===================== DASHBOARD CARDS ===================== */
+
+.dashboard-card{
+
+  border-radius:26px;
+
+  overflow:hidden;
+
+  background: rgba(255,255,255,.75);
+
+  backdrop-filter: blur(12px);
+
+  box-shadow: var(--shadow);
+
+  transition:.35s ease;
+}
+
+.dashboard-card:hover{
+  transform: translateY(-5px);
+}
+
+.dashboard-header{
+
+  padding:22px 26px;
+
+  border-bottom:
+    1px solid rgba(148,163,184,.12);
+}
+
+.dashboard-header h5{
+  margin:0;
+  font-weight:700;
+  color:var(--text);
+}
+
+.dashboard-body{
+  padding:24px;
+  height:360px;
+}
+
+.trend-body{
+  height:420px;
+}
+
+/* ===================== TABLES ===================== */
+
+.table{
+
+  border-collapse: separate !important;
+
+  border-spacing: 0 12px !important;
+}
+
+.table thead th{
+
+  border:none !important;
+
+  color:var(--muted);
+
+  text-transform:uppercase;
+
+  letter-spacing:.6px;
+
+  font-size:.78rem;
+
+  font-weight:800;
+}
+
+.table tbody tr{
+
+  background:white;
+
+  transition:.25s ease;
+
+  box-shadow:
+    0 4px 15px rgba(0,0,0,.04);
+}
+
+.table tbody tr:hover{
+
+  transform:scale(1.01);
+
+  box-shadow:
+    0 12px 24px rgba(0,0,0,.08);
+}
+
+.table td{
+
+  border-top:none !important;
+
+  padding:18px !important;
+
+  vertical-align:middle;
+}
+
+/* ===================== ANIMATIONS ===================== */
+
+.info-card,
+.dashboard-card,
+.risk-card{
+
+  animation: fadeUp .7s ease;
+}
+
+@keyframes fadeUp{
+
+  from{
+    opacity:0;
+    transform: translateY(18px);
   }
 
-  /* २. ड्यासबोर्डको मुख्य लेआउट (Jazzmin सँग जुध्न नदिन) */
-  section.content .container-fluid {
-    display: block !important;
-    padding-top: 15px;
+  to{
+    opacity:1;
+    transform: translateY(0);
+  }
+}
+
+/* ===================== SCROLLBAR ===================== */
+
+::-webkit-scrollbar{
+  width:10px;
+}
+
+::-webkit-scrollbar-thumb{
+
+  background:
+    linear-gradient(
+      #94a3b8,
+      #64748b
+    );
+
+  border-radius:999px;
+}
+
+/* ===================== MOBILE ===================== */
+
+@media(max-width:768px){
+
+  .dashboard-body{
+    height:300px;
   }
 
-  /* Jazzmin को डिफल्ट अनावश्यक रोहरू हटाउन */
-  section.content > .container-fluid > .row:not(:first-child),
-  .content-wrapper > .content > .container-fluid > .row {
-    display: none !important;
+  .trend-body{
+    height:320px;
   }
 
-  /* ३. माथिको ४ वटा रङ्गीन बक्स (Small Boxes) को स्टाइल */
-  .small-box {
-    border-radius: 15px !important;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    border: none !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  .card-info h2{
+    font-size:1.7rem;
   }
 
-  .small-box:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+  .risk-card h2{
+    font-size:1.6rem;
   }
 
-  .small-box .inner {
-    padding: 20px !important;
-  }
+}
 
-  .small-box h3 {
-    font-size: 2.2rem !important;
-    font-weight: 800 !important;
-    margin-bottom: 5px;
-  }
+/* ===================== HIDE DUPLICATE JAZZMIN ===================== */
 
-  .small-box p {
-    font-size: 1rem !important;
-    opacity: 0.9;
-  }
+section.content > .container-fluid > .row:not(:first-child),
+.content-wrapper > .content > .container-fluid > .row {
+  display: none !important;
+}
 
-  /* ४. ग्राफ र चार्ट भएका कार्डहरू (Cards) */
-  .card {
-    border-radius: 15px !important;
-    border: none !important;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05) !important;
-    margin-bottom: 20px;
-  }
+/* style for send email button */
+#sendEmailBtn {
+    transition: transform 0.1s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-  .card-header {
-    background-color: transparent !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    padding: 15px 20px !important;
-  }
+/* Hover effect */
+#sendEmailBtn:hover {
+    background: #bb2d3b !important; /* Slightly darker red */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
 
-  .card-title {
-    font-size: 1.1rem !important;
-    color: #333;
-  }
+/* The "Click" feedback */
+#sendEmailBtn:active {
+    transform: scale(0.97); /* Shrinks slightly */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
 
-  /* ५. उत्तरदायी (Responsive) सुधारहरू */
-  @media (max-width: 768px) {
-    .navbar-nav.ml-auto {
-      position: absolute;
-      right: 15px;
-      top: 10px;
-    }
-  }
+/* Disabled state */
+#sendEmailBtn:disabled {
+    background: #6c757d !important; /* Gray out when sending */
+    cursor: not-allowed;
+    transform: none;
+}
+
 </style>
+
 {% endblock %}

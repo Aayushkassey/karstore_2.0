@@ -1,4 +1,103 @@
-{% comment %} <!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; padding: 0; background: #f4f4f4; font-family: Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    .header { background: #2c3e50; padding: 24px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 28px; letter-spacing: 2px; }
+    .header p { color: #f85606; margin: 4px 0 0; font-size: 13px; }
+    .body { padding: 28px 32px; }
+    .greeting { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+    .subtext { color: #666; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+    .section-title { font-size: 16px; font-weight: bold; color: #f85606; margin-bottom: 16px; border-left: 4px solid #f85606; padding-left: 10px; }
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+    .product-card { border: 1px solid #eee; border-radius: 10px; overflow: hidden; text-align: center; transition: box-shadow 0.2s; }
+    .product-card img { width: 100%; height: 120px; object-fit: cover; }
+    .product-card .no-img { width: 100%; height: 120px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 12px; }
+    .product-card .info { padding: 10px 8px; }
+    .product-card .name { font-size: 13px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .product-card .price { font-size: 13px; color: #e67e22; font-weight: bold; margin-bottom: 4px; }
+    .product-card .discount { font-size: 11px; color: #27ae60; font-weight: bold; }
+    .product-card .btn { display: block; margin: 8px 8px 10px; padding: 7px; background: #f85606; color: #fff; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: bold; }
+    .cta-section { text-align: center; background: #fff8f5; border-radius: 10px; padding: 20px; margin-bottom: 24px; border: 1px dashed #f85606; }
+    .cta-section p { color: #555; font-size: 14px; margin-bottom: 12px; }
+    .cta-btn { display: inline-block; padding: 12px 30px; background: #f85606; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; }
+    .footer { background: #f9f9f9; text-align: center; padding: 18px; font-size: 12px; color: #999; border-top: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>KAR Store</h1>
+      <p>Smart Shopping · Quality Products</p>
+    </div>
+
+    <!-- BODY -->
+    <div class="body">
+      <p class="greeting">Namaste, {{ user.username }} 👋</p>
+
+      {% if is_cold_start %}
+        <p class="subtext">
+          Welcome to KAR Store! Based on your interests, here are some products
+          we think you'll love. Explore and find your next favourite!
+        </p>
+        <div class="section-title">🌟 Picked For Your Interests</div>
+      {% else %}
+        <p class="subtext">
+          We noticed you haven't visited us in a while — we miss you!
+          Based on your browsing and purchase history, here are some
+          handpicked deals just for you.
+        </p>
+        <div class="section-title">✨ Personalized Just For You</div>
+      {% endif %}
+
+      <!-- PRODUCT GRID -->
+      <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card">
+          {% if product.image %}
+            <img src="{{ SITE_URL }}{{ product.image.url }}" alt="{{ product.name }}">
+          {% elif product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+          {% else %}
+            <div class="no-img">No Image</div>
+          {% endif %}
+          <div class="info">
+            <div class="name">{{ product.name }}</div>
+            <div class="price">Rs. {{ product.price|floatformat:0 }}</div>
+            {% if product.discount_percentage and product.discount_percentage > 0 %}
+              <div class="discount">{{ product.discount_percentage|floatformat:0 }}% OFF</div>
+            {% endif %}
+            <a href="{{ SITE_URL }}/product/{{ product.id }}" class="btn">View Product</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-section">
+        <p>Don't miss out — visit KAR Store and discover hundreds of products!</p>
+        <a href="{{ SITE_URL }}" class="btn cta-btn">Shop Now →</a>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <p>You're receiving this because you have an account at KAR Store.</p>
+      <p>&copy; 2026 KAR Store, Pokhara, Nepal</p>
+    </div>
+
+  </div>
+</body>
+</html>
+
+
+
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <style>
@@ -29,7 +128,7 @@
                 {% endif %}
                 <h3>{{ product.name }}</h3>
                 <p class="price">Rs. {{ product.price }}</p>
-                <a href="http://yoursite.com/product/{{ product.id }}" class="btn">View Product</a>
+                <a href="http://127.0.0.1:8000/product/{{ product.id }}" class="btn">View Product</a>
             </div>
             {% endfor %}
         </div>
@@ -40,4 +139,4 @@
         </div>
     </div>
 </body>
-</html> {% endcomment %}
+</html>  -->

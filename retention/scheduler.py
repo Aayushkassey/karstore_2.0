@@ -2,16 +2,22 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from django.conf import settings
 import logging
+from retention.models import UserRecommendation
 
 logger = logging.getLogger(__name__)
-
+def _precompute_all_job():
+    try:
+        from retention.tasks import precompute_all
+        precompute_all()
+    except Exception as e:
+        logger.error(f"Daily precompute failed: {e}")
 
 def start_scheduler():
     scheduler = BackgroundScheduler()
 
     #DAILY JOB — score all users
     scheduler.add_job(
-        _score_all_users_job,
+        _precompute_all_job,
         trigger=CronTrigger(hour=0, minute=0),  # midnight daily
         id='daily_churn_scoring',
         name='Daily Churn Scoring',
@@ -26,6 +32,7 @@ def start_scheduler():
         name='Weekly Retention Emails',
         replace_existing=True,
     )
+    
 
     scheduler.start()
     logger.info("Scheduler started — daily scoring + weekly emails active")

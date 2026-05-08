@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.db.models import Max, Count
 from django.utils import timezone
 
@@ -174,3 +174,10 @@ def banner_data(request):
         "message":          "Products we think you'll love.",
         "recommendations":  product_list,
     })
+
+@staff_member_required
+@require_POST
+def trigger_retention_emails(request):
+    from retention.tasks import send_retention_emails
+    result = send_retention_emails()
+    return JsonResponse(result)

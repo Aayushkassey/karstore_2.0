@@ -177,3 +177,15 @@ SESSION_COOKIE_AGE = 604800
 
 # यदि युजरले साइट चलाइरहन्छ भने सेसनलाई नयाँ बनाइराख्ने
 SESSION_SAVE_EVERY_REQUEST = True
+
+JAZZMIN_SETTINGS = {
+    "order_with_respect_to": [
+        "accounts",
+        "retention",
+        "products",
+        "orders",
+        "payment",
+        "adminpanel",
+        "sellerpanel",
+    ],
+}
