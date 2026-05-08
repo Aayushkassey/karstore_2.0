@@ -274,20 +274,32 @@ def _send_retention_email(user, products, churn_probability, is_cold_start=False
     try:
         from django.template.loader import render_to_string
         from django.core.mail import EmailMultiAlternatives
+        from retention.models import PopularProducts
+        import random
 
-        SITE_URL = "http://127.0.0.1:8000"  # change after deploy
+        SITE_URL = "http://127.0.0.1:8000"
 
         subject = (
-            "Welcome to KAR Store — Products picked for you! 🎁"
+            "Welcome to KAR Store - Products picked for you! 🎁"
             if is_cold_start else
-            "We miss you at KAR Store — Deals just for you 🎁"
+            "We miss you at KAR Store - Deals just for you 🎁"
         )
 
+        # Get random 3 from top 10 popular for trending section
+        pop_cache = PopularProducts.objects.first()
+        pop_ids = pop_cache.product_ids[:10] if pop_cache else []
+        trending_ids = random.sample(pop_ids, min(3, len(pop_ids)))
+        trending_products = Product.objects.filter(
+            id__in=trending_ids,
+            stock__gt=0
+        )[:3]
+
         html_content = render_to_string('emails/retention_email.html', {
-            'user':          user,
-            'products':      products,
-            'is_cold_start': is_cold_start,
-            'SITE_URL':      SITE_URL,
+            'user':              user,
+            'products':          products,
+            'trending_products': trending_products,
+            'is_cold_start':     is_cold_start,
+            'SITE_URL':          SITE_URL,
         })
 
         email = EmailMultiAlternatives(
