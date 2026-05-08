@@ -40,7 +40,8 @@ def get_churn_score(user_id: int) -> dict:
             "user_id": user_id,
             "churn_probability": float(data.get("churn_probability", 0.0)),
             "will_churn": data.get("will_churn", False),
-            "risk_level": data.get("risk_level", "low"),  # API returns this directly
+            # "risk_level": data.get("risk_level", "low"),  # API returns this directly
+            "risk_level": _get_risk_level(float(data.get("churn_probability", 0.0))),  # API returns this directly
             "error": None
         }
 
@@ -126,16 +127,16 @@ def _build_churn_payload(raw: dict) -> dict:
         "wishlist_to_purchase_ratio": round(wishlist_to_purchase_ratio, 4),
     }
 
-# def _get_risk_level(score: float) -> str:
-#     """
-#     Classify churn probability into risk buckets.
-#     high   >= 0.75  → send retention email + show discount banner
-#     medium >= 0.40  → show recommendations banner
-#     low    <  0.40  → normal experience
-#     """
-#     if score >= 0.75:
-#         return "high"
-#     elif score >= 0.40:
-#         return "medium"
-#     else:
-#         return "low"
+def _get_risk_level(score: float) -> str:
+    """
+    Classify churn probability into risk buckets.
+    high   >= 0.75  → send retention email + show discount banner
+    medium >= 0.40  → show recommendations banner
+    low    <  0.40  → normal experience
+    """
+    if score >= 0.75:
+        return "high"
+    elif score >= 0.45:
+        return "medium"
+    else:
+        return "low"

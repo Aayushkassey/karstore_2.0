@@ -47,10 +47,9 @@ def precompute_all():
     3. Get popular products → PopularProducts
     """
     print(f"[{timezone.now()}] Starting daily precomputation...")
+
     # Wake API first before any ML calls
     wake_ml_api(max_wait=240, interval=15)
-
-    print(f"[{timezone.now()}] Starting daily precomputation...")
 
     # ── 1. SCORE ALL USERS ────────────────────────────────────────────────
     score_all_users()
@@ -60,38 +59,50 @@ def precompute_all():
         role='CUSTOMER',
         is_active=True
     ).exclude(email__endswith='@synthetic.karstore.com')
+
     pop_cache = PopularProducts.objects.first()
-    pop_ids = pop_cache.product_ids if pop_cache else []
+    pop_ids   = pop_cache.product_ids if pop_cache else []
+
+    SYNTHETIC_MAX_ID = 1100
     rec_updated = 0
+
     for user in customers:
         try:
-            recs = get_recommendations(user.id, top_n=10)
+            recs       = get_recommendations(user.id, top_n=10)
             product_ids = recs.get('recommendations', [])
-            is_cold = recs.get('is_cold_start', True)
-            #if cold , filll with interests + popular
-            if is_cold or not product_ids:
-                if pop_ids and user.interests.exists():
-                    interest_names = list(user.interests.values_list('name', flat=True))
+            is_cold    = recs.get('is_cold_start', True)
+
+            # New real users (added after synthetic injection)
+            # model doesn't know them yet → force interest filter
+            is_new_real_user = user.id > SYNTHETIC_MAX_ID
+
+            if is_cold or not product_ids or is_new_real_user:
+                if user.interests.exists():
+                    interest_names = list(
+                        user.interests.values_list('name', flat=True)
+                    )
+                    # Query DB directly — not limited to popular list
                     interest_product_ids = list(
                         Product.objects.filter(
-                            id__in=pop_ids,
                             category__name__in=interest_names,
                             stock__gt=0
-                        ).values_list('id', flat=True)[:10]
-                )
+                        ).order_by('-rating').values_list('id', flat=True)[:10]
+                    )
                     product_ids = interest_product_ids if interest_product_ids else pop_ids[:10]
-                elif pop_ids:
+                else:
                     product_ids = pop_ids[:10]
+                is_cold = True  # mark as cold start
 
             UserRecommendation.objects.update_or_create(
                 user=user,
                 defaults={
-                    'product_ids':   product_ids,               #computed product ids
+                    'product_ids':   product_ids,
                     'is_cold_start': is_cold,
                     'source':        recs.get('source', 'popular'),
                 }
             )
             rec_updated += 1
+
         except Exception as e:
             print(f"  Rec failed for {user.username}: {e}")
 
@@ -99,7 +110,7 @@ def precompute_all():
 
     # ── 3. POPULAR PRODUCTS ───────────────────────────────────────────────
     try:
-        popular = get_popular_products(top_n=200) #getting from api call
+        popular     = get_popular_products(top_n=200)
         product_ids = popular.get('recommendations', [])
         if product_ids:
             obj = PopularProducts.objects.first()
