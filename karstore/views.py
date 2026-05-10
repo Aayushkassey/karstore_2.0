@@ -18,6 +18,7 @@ from django.core.mail import EmailMessage
 from .tokens import generate_token
 from django.contrib import messages
 from karstore.email_utils import send_email
+from django.contrib.auth.tokens import default_token_generator
 
 def send_email_async(email_message):
     try:
@@ -151,6 +152,31 @@ def activate(request, uidb64, token):
         messages.error(request, "Activation link is invalid or expired!")
         return redirect('login')
 
+def password_reset_request(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '').lower().strip()
+        try:
+            user = CustomerUser.objects.get(email=email)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_link = f"https://karstore.onrender.com/password-reset-confirm/{uid}/{token}/"
+ 
+            subject = "Password Reset - KAR Store"
+            message = (
+                f"Hi {user.username},\n\n"
+                f"Click the link below to reset your password:\n\n"
+                f"{reset_link}\n\n"
+                f"This link expires in 24 hours.\n\n"
+                f"If you didn't request this, ignore this email."
+            )
+            send_email(email, subject, message)
+ 
+        except CustomerUser.DoesNotExist:
+            pass
+ 
+        return redirect('password_reset_done')
+ 
+    return render(request, 'registration/password_reset.html')
 
 @login_required
 def logout_view(request):
