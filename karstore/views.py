@@ -17,7 +17,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from .tokens import generate_token
 from django.contrib import messages
-
+from karstore.email_utils import send_email
 
 def send_email_async(email_message):
     try:
@@ -122,12 +122,7 @@ def register(request):
             'token': generate_token.make_token(user),
         })
         
-        email_message = EmailMessage(mail_subject, message, to=[email])
-        try:
-            email_message.send(fail_silently=False)
-            print(f"[EMAIL] Activation email sent to {email}")
-        except Exception as e:
-            print(f"[EMAIL] FAILED - {e}")
+        send_email(email, mail_subject, message)
 
         return render(request, 'pages/login.html', {
             "success": "Registration successful! Please check your email to verify your account."

@@ -6,6 +6,7 @@ from django_esewa import EsewaPayment
 import uuid
 from accounts.models import CustomerActivity
 from orders.models import Cart, Order, CartItem
+from karstore.email_utils import send_email
 
 
 def checkout_process(request):
@@ -136,13 +137,7 @@ def payment_success(request, uuid):
     )
 
     try:
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [user.email],
-            fail_silently=False
-        )
+        send_email(user.email, subject, message)
         print(f"[EMAIL] SUCCESS - sent to {user.email}")
     except Exception as e:
         print(f"[EMAIL] FAILED - {e}")
@@ -202,13 +197,8 @@ def payment_failure(request, uuid):
     )
 
     try:
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [user.email],
-            fail_silently=False
-        )
+        send_email(user.email, subject, message)
+        
         print(f"[EMAIL] SUCCESS - sent to {user.email}")
     except Exception as e:
         print(f"[EMAIL] FAILED - {e}")
