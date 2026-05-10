@@ -43,8 +43,8 @@ def initiate_esewa(request, uuid):
     
     payment = EsewaPayment(
         product_code="EPAYTEST",
-        success_url=f"http://127.0.0.1:8000/payment/success/{order.uuid}/",
-        failure_url=f"http://127.0.0.1:8000/payment/failure/{order.uuid}/",
+        success_url=f"https://karstore.onrender.com/payment/success/{order.uuid}/",
+        failure_url=f"https://karstore.onrender.com/payment/failure/{order.uuid}/",
         amount=order.amount,
         tax_amount=order.tax_amount,
         total_amount=order.total_amount,

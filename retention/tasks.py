@@ -277,7 +277,7 @@ def _send_retention_email(user, products, churn_probability, is_cold_start=False
         from retention.models import PopularProducts
         import random
 
-        SITE_URL = "http://127.0.0.1:8000"
+        SITE_URL = "https://karstore.onrender.com"
 
         subject = (
             "Welcome to KAR Store - Products picked for you! 🎁"
