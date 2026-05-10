@@ -22,144 +22,293 @@ from ml_services.services.recsys import get_popular_products
 from ml_services.services.recsys import get_recommendations, get_popular_products
 from retention.models import UserRecommendation, PopularProducts
 
+from django.core.cache import cache
+
 # 1. Main Home View (Search + Random Discovery)
+# def home(request):
+#     # 1. Basic redirections
+#     if request.user.is_authenticated and not (request.user.is_superuser or request.user.is_staff or request.user.role == 'SELLER'):
+#         if request.user.role == 'CUSTOMER' and not request.user.has_set_interests:
+#             return redirect('select_interest')
+
+#     query = request.GET.get('q', '').strip()
+#     # all_categories = Category.objects.all()
+
+#     # highly_searched = Product.objects.annotate(
+#     #     num_sales=Count('order')
+#     # ).order_by('-num_sales')[:10]
+
+#     # # यदि अर्डर नै छैन भने (नयाँ साइटमा)
+#     # if not highly_searched.exists() or highly_searched[0].num_sales == 0:
+#     #     highly_searched = Product.objects.all().order_by('?')[:10]
+
+#     try:
+#         pop_cache = PopularProducts.objects.first()
+#         popular_ids = pop_cache.product_ids[:10] if pop_cache else []
+#     except Exception:
+#         popular_ids = []
+
+#     if popular_ids:
+#         if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+#             user_whistles_ref = Whistle.objects.filter(
+#                 user=request.user, product=OuterRef('pk')
+#             )
+#             highly_searched = Product.objects.filter(
+#                 id__in=popular_ids, stock__gt=0
+#             ).annotate(is_whistle=Exists(user_whistles_ref))
+#         else:
+#             highly_searched = Product.objects.filter(
+#                 id__in=popular_ids, stock__gt=0
+#             ).annotate(is_whistle=Value(False, output_field=BooleanField()))
+
+#         id_order = {pid: idx for idx, pid in enumerate(popular_ids)}
+#         highly_searched = sorted(highly_searched, key=lambda p: id_order.get(p.id, 99))
+#     else:
+#         # fallback to DB order count
+#         highly_searched = Product.objects.annotate(
+#             num_sales=Count('order')
+#         ).order_by('-num_sales')[:10]
+
+    
+    
+#     # २. Popular Discovery / Recommended 
+#     recommended_products = None
+#     if not query and request.user.is_authenticated and request.user.role == 'CUSTOMER':
+#         user_whistles_ref = Whistle.objects.filter(
+#             user=request.user, product=OuterRef('pk')
+#         )
+
+#         try:
+#             user_rec = UserRecommendation.objects.get(user=request.user)
+#             product_ids = user_rec.product_ids[:10] #8
+#             is_cold = user_rec.is_cold_start
+
+#             if product_ids and not is_cold:
+#                 # Personalized from DB cache
+#                 recommended_products = Product.objects.filter(
+#                     id__in=product_ids, stock__gt=0
+#                 ).annotate(is_whistle=Exists(user_whistles_ref))
+#                 id_order = {pid: idx for idx, pid in enumerate(product_ids)}
+#                 recommended_products = sorted(
+#                     recommended_products,
+#                     key=lambda p: id_order.get(p.id, 99)
+#                 )
+#             else:
+#                 raise ValueError("cold start")
+
+#         except (UserRecommendation.DoesNotExist, ValueError):
+#             # No cache yet — fallback to interest filter
+#             if request.user.interests.exists():
+#                 interest_names = list(
+#                     request.user.interests.values_list('name', flat=True)
+#                 )
+#                 # Try popular cache filtered by interests
+#                 pop_cache = PopularProducts.objects.first()
+#                 pop_ids = pop_cache.product_ids if pop_cache else []
+
+#                 if pop_ids:
+#                     recommended_products = Product.objects.filter(
+#                         id__in=pop_ids,
+#                         category__name__in=interest_names,
+#                         stock__gt=0
+#                     ).annotate(
+#                         is_whistle=Exists(user_whistles_ref)
+#                     ).distinct()[:10] #8
+
+#                 if not recommended_products:
+#                     # Final fallback — direct DB interest filter
+#                     recommended_products = Product.objects.filter(
+#                         category__name__in=interest_names,
+#                         stock__gt=0
+#                     ).annotate(
+#                         is_whistle=Exists(user_whistles_ref)
+#                     ).distinct().order_by('-id')[:10] #8 #10    
+
+#     # 3. Main Product List (Search or Featured)
+#     if query:
+#         words = query.split()
+#         search_filter = Q()
+#         for word in words:
+#             search_filter |= Q(name__icontains=word) | Q(description__icontains=word) | Q(category__name__icontains=word)
+        
+#         base_query = Product.objects.filter(search_filter).distinct().order_by('-id')
+#         message = f"Search Results for '{query}'"
+        
+#         # Log Activity
+#         if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+#             CustomerActivity.objects.create(user=request.user, action="search", extra_info=f"Searched for: {query}")
+#     else:
+#         # Normal Featured Products
+#         base_query = Product.objects.all().order_by('-id')
+#         message = "Featured Products"
+
+#     # --- 4. Private Wishlist Annotation (The Secret Sauce) ---
+#     # यसले गर्दा मात्र Customer A को मुटु Customer B कोमा रातो देखिँदैन
+#     if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+#         user_whistles = Whistle.objects.filter(
+#             user=request.user, 
+#             product=OuterRef('pk')
+#         )
+#         product_list = base_query.annotate(
+#             is_whistle=Exists(user_whistles)
+#         ).order_by('-id')
+#     else:
+#         # गेस्ट वा सेलरका लागि सबै मुटु सेतो (False) बनाउने
+#         product_list = base_query.annotate(
+#             is_whistle=Value(False, output_field=BooleanField())
+#         ).order_by('-id')
+
+#     # 4. Pagination
+#     paginator = Paginator(product_list, 15)
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+
+#     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#         return render(request, 'components/product_list_ajax.html', {'page_obj': page_obj})
+
+#     return render(request, 'pages/home.html', {
+#         'page_obj': page_obj,
+#         'recommended_products': recommended_products,
+#         'highly_searched': highly_searched,
+#         # 'categories': all_categories,
+#         'query': query,
+#         'message': message
+#     })
+
+
 def home(request):
-    # 1. Basic redirections
     if request.user.is_authenticated and not (request.user.is_superuser or request.user.is_staff or request.user.role == 'SELLER'):
         if request.user.role == 'CUSTOMER' and not request.user.has_set_interests:
             return redirect('select_interest')
 
     query = request.GET.get('q', '').strip()
-    all_categories = Category.objects.all()
+    page_number = request.GET.get('page')
 
-    # highly_searched = Product.objects.annotate(
-    #     num_sales=Count('order')
-    # ).order_by('-num_sales')[:10]
+    # --- Whistle IDs (1 query) ---
+    whistle_ids = set()
+    if request.user.is_authenticated and request.user.role == 'CUSTOMER':
+        whistle_ids = set(Whistle.objects.filter(
+            user=request.user
+        ).values_list('product_id', flat=True))
 
-    # # यदि अर्डर नै छैन भने (नयाँ साइटमा)
-    # if not highly_searched.exists() or highly_searched[0].num_sales == 0:
-    #     highly_searched = Product.objects.all().order_by('?')[:10]
+    # --- Highly Searched ---
+    highly_searched = cache.get('highly_searched_products')
+    if not highly_searched:
+        try:
+            pop_cache = PopularProducts.objects.first()
+            popular_ids = pop_cache.product_ids[:10] if pop_cache else []
+        except Exception:
+            popular_ids = []
 
-    try:
-        pop_cache = PopularProducts.objects.first()
-        popular_ids = pop_cache.product_ids[:10] if pop_cache else []
-    except Exception:
-        popular_ids = []
-
-    if popular_ids:
-        if request.user.is_authenticated and request.user.role == 'CUSTOMER':
-            user_whistles_ref = Whistle.objects.filter(
-                user=request.user, product=OuterRef('pk')
-            )
-            highly_searched = Product.objects.filter(
+        if popular_ids:
+            highly_searched = list(Product.objects.filter(
                 id__in=popular_ids, stock__gt=0
-            ).annotate(is_whistle=Exists(user_whistles_ref))
+            ).annotate(is_whistle=Value(False, output_field=BooleanField())))
+            id_order = {pid: idx for idx, pid in enumerate(popular_ids)}
+            highly_searched = sorted(highly_searched, key=lambda p: id_order.get(p.id, 99))
         else:
-            highly_searched = Product.objects.filter(
-                id__in=popular_ids, stock__gt=0
-            ).annotate(is_whistle=Value(False, output_field=BooleanField()))
+            highly_searched = list(Product.objects.annotate(
+                num_sales=Count('order')
+            ).order_by('-num_sales')[:10].annotate(
+                is_whistle=Value(False, output_field=BooleanField())
+            ))
 
-        id_order = {pid: idx for idx, pid in enumerate(popular_ids)}
-        highly_searched = sorted(highly_searched, key=lambda p: id_order.get(p.id, 99))
-    else:
-        # fallback to DB order count
-        highly_searched = Product.objects.annotate(
-            num_sales=Count('order')
-        ).order_by('-num_sales')[:10]
+        cache.set('highly_searched_products', highly_searched, 60 * 10)
 
-    
-    
-    # २. Popular Discovery / Recommended 
+    for p in highly_searched:
+        p.is_whistle = p.id in whistle_ids
+
+    # --- Recommended Products ---
     recommended_products = None
     if not query and request.user.is_authenticated and request.user.role == 'CUSTOMER':
-        user_whistles_ref = Whistle.objects.filter(
-            user=request.user, product=OuterRef('pk')
-        )
+        rec_cache_key = f'rec_{request.user.id}'
+        recommended_products = cache.get(rec_cache_key)
 
-        try:
-            user_rec = UserRecommendation.objects.get(user=request.user)
-            product_ids = user_rec.product_ids[:10] #8
-            is_cold = user_rec.is_cold_start
+        if not recommended_products:
+            try:
+                user_rec = UserRecommendation.objects.get(user=request.user)
+                product_ids = user_rec.product_ids[:10]
+                is_cold = user_rec.is_cold_start
 
-            if product_ids and not is_cold:
-                # Personalized from DB cache
-                recommended_products = Product.objects.filter(
-                    id__in=product_ids, stock__gt=0
-                ).annotate(is_whistle=Exists(user_whistles_ref))
-                id_order = {pid: idx for idx, pid in enumerate(product_ids)}
-                recommended_products = sorted(
-                    recommended_products,
-                    key=lambda p: id_order.get(p.id, 99)
-                )
-            else:
-                raise ValueError("cold start")
+                if product_ids and not is_cold:
+                    recommended_products = list(Product.objects.filter(
+                        id__in=product_ids, stock__gt=0
+                    ).annotate(is_whistle=Value(False, output_field=BooleanField())))
+                    id_order = {pid: idx for idx, pid in enumerate(product_ids)}
+                    recommended_products = sorted(
+                        recommended_products,
+                        key=lambda p: id_order.get(p.id, 99)
+                    )
+                else:
+                    raise ValueError("cold start")
 
-        except (UserRecommendation.DoesNotExist, ValueError):
-            # No cache yet — fallback to interest filter
-            if request.user.interests.exists():
-                interest_names = list(
-                    request.user.interests.values_list('name', flat=True)
-                )
-                # Try popular cache filtered by interests
-                pop_cache = PopularProducts.objects.first()
-                pop_ids = pop_cache.product_ids if pop_cache else []
+            except (UserRecommendation.DoesNotExist, ValueError):
+                if request.user.interests.exists():
+                    interest_names = list(
+                        request.user.interests.values_list('name', flat=True)
+                    )
+                    try:
+                        pop_obj = PopularProducts.objects.first()
+                        pop_ids = pop_obj.product_ids if pop_obj else []
+                    except Exception:
+                        pop_ids = []
 
-                if pop_ids:
-                    recommended_products = Product.objects.filter(
-                        id__in=pop_ids,
-                        category__name__in=interest_names,
-                        stock__gt=0
-                    ).annotate(
-                        is_whistle=Exists(user_whistles_ref)
-                    ).distinct()[:10] #8
+                    if pop_ids:
+                        recommended_products = list(Product.objects.filter(
+                            id__in=pop_ids,
+                            category__name__in=interest_names,
+                            stock__gt=0
+                        ).annotate(
+                            is_whistle=Value(False, output_field=BooleanField())
+                        ).distinct()[:10])
 
-                if not recommended_products:
-                    # Final fallback — direct DB interest filter
-                    recommended_products = Product.objects.filter(
-                        category__name__in=interest_names,
-                        stock__gt=0
-                    ).annotate(
-                        is_whistle=Exists(user_whistles_ref)
-                    ).distinct().order_by('-id')[:10] #8 #10    
+                    if not recommended_products:
+                        recommended_products = list(Product.objects.filter(
+                            category__name__in=interest_names,
+                            stock__gt=0
+                        ).annotate(
+                            is_whistle=Value(False, output_field=BooleanField())
+                        ).distinct().order_by('-id')[:10])
 
-    # 3. Main Product List (Search or Featured)
+            if recommended_products:
+                cache.set(rec_cache_key, recommended_products, 60 * 10)
+
+        if recommended_products:
+            for p in recommended_products:
+                p.is_whistle = p.id in whistle_ids
+
+    # --- Main Product List ---
     if query:
         words = query.split()
         search_filter = Q()
         for word in words:
             search_filter |= Q(name__icontains=word) | Q(description__icontains=word) | Q(category__name__icontains=word)
-        
         base_query = Product.objects.filter(search_filter).distinct().order_by('-id')
         message = f"Search Results for '{query}'"
-        
-        # Log Activity
         if request.user.is_authenticated and request.user.role == 'CUSTOMER':
             CustomerActivity.objects.create(user=request.user, action="search", extra_info=f"Searched for: {query}")
     else:
-        # Normal Featured Products
         base_query = Product.objects.all().order_by('-id')
         message = "Featured Products"
 
-    # --- 4. Private Wishlist Annotation (The Secret Sauce) ---
-    # यसले गर्दा मात्र Customer A को मुटु Customer B कोमा रातो देखिँदैन
     if request.user.is_authenticated and request.user.role == 'CUSTOMER':
-        user_whistles = Whistle.objects.filter(
-            user=request.user, 
-            product=OuterRef('pk')
-        )
-        product_list = base_query.annotate(
-            is_whistle=Exists(user_whistles)
-        ).order_by('-id')
+        user_whistles = Whistle.objects.filter(user=request.user, product=OuterRef('pk'))
+        product_list = base_query.annotate(is_whistle=Exists(user_whistles)).order_by('-id')
     else:
-        # गेस्ट वा सेलरका लागि सबै मुटु सेतो (False) बनाउने
         product_list = base_query.annotate(
             is_whistle=Value(False, output_field=BooleanField())
         ).order_by('-id')
 
-    # 4. Pagination
     paginator = Paginator(product_list, 15)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+
+    # Guest + no search + page 1 = cache
+    if not query and not request.user.is_authenticated and not page_number:
+        page_obj = cache.get('home_page1_guest')
+        if not page_obj:
+            page_obj = paginator.get_page(1)
+            cache.set('home_page1_guest', page_obj, 60 * 5)
+    else:
+        page_obj = paginator.get_page(page_number)
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'components/product_list_ajax.html', {'page_obj': page_obj})
@@ -168,10 +317,11 @@ def home(request):
         'page_obj': page_obj,
         'recommended_products': recommended_products,
         'highly_searched': highly_searched,
-        'categories': all_categories,
         'query': query,
         'message': message
     })
+
+
 
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -190,7 +340,7 @@ def log_product_view(request, product_id):
 # 3. Category wise products filter
 def category_products(request, id):
     category = get_object_or_404(Category, id=id)
-    all_categories = Category.objects.all() 
+    # all_categories = Category.objects.all() 
 
     base_query = Product.objects.filter(category=category)
 
@@ -214,7 +364,7 @@ def category_products(request, id):
 
     return render(request, 'pages/home.html', {
         'page_obj': page_obj,
-        'categories': all_categories, 
+        # 'categories': all_categories, 
         'message': f'Items in {category.name}',
         'selected_category': category
     })

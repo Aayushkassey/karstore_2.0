@@ -75,6 +75,7 @@ TEMPLATES =[
 ]
 
 MIDDLEWARE = [ 
+    # 'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -82,7 +83,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware',
 ]
+
+# CACHE_MIDDLEWARE_SECONDS = 600
 
 ROOT_URLCONF = 'karstore.urls'
 
@@ -175,8 +179,8 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False 
 
-# 7 days
-SESSION_COOKIE_AGE = 604800 
+# 30 days
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 
 
 # SESSION_SAVE_EVERY_REQUEST = True
@@ -198,9 +202,10 @@ JAZZMIN_SETTINGS = {
 # MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 # INTERNAL_IPS = ['127.0.0.1']
 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-#         'LOCATION': BASE_DIR / 'django_cache',
-#     }
-# }
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
