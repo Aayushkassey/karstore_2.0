@@ -27,10 +27,22 @@ class CustomerUserAdmin(BaseUserAdmin):
     search_fields = ('username', 'email')
     filter_horizontal = ('interests',)
 
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'password1', 'password2', 'role', 'gender', 'age', 'is_active'),
+        }),
+    )
+
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal Info', {'fields': ('email', 'role', 'gender', 'age', 'interests')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+    )
+
     def display_interests(self, obj):
         return ", ".join([interest.name for interest in obj.interests.all()])
     display_interests.short_description = 'Interests'
-
 # 3. Payment Admin
 class PaymentAdmin(admin.ModelAdmin):
     list_select_related = ('user',)
