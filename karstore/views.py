@@ -65,6 +65,8 @@ def register(request):
 
     if request.method == 'POST':
         u_name = request.POST.get("username")
+        if ' ' in u_name:
+            return render(request, 'pages/register.html', {"error": "Username cannot contain spaces."})
         email = request.POST.get("email").lower().strip()
         password = request.POST.get("password")
         role = request.POST.get("role", "CUSTOMER")
@@ -154,7 +156,7 @@ def logout_view(request):
             action='logout'
         )
     logout(request)
-    return redirect('home')
+    return redirect('login')
 
 @login_required
 def select_interest(request):

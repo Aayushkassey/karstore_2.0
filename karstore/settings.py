@@ -103,13 +103,16 @@ WSGI_APPLICATION = 'karstore.wsgi.application'
 #         'PORT': config('DB_PORT'),
 #     }
 # }
-import dj_database_url
+import dj_database_url #type: ignore
 
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', config('DATABASE_URL'))
     )
 }
+
+# Reuse DB connection for 60 seconds instead of opening/closing each request
+DATABASES['default']['CONN_MAX_AGE'] = 60
 
 
 # Password validation
@@ -147,7 +150,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # Yo thapa
+STATIC_ROOT = BASE_DIR / 'staticfiles' 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
@@ -175,8 +178,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # 7 days
 SESSION_COOKIE_AGE = 604800 
 
-# यदि युजरले साइट चलाइरहन्छ भने सेसनलाई नयाँ बनाइराख्ने
-SESSION_SAVE_EVERY_REQUEST = True
+
+# SESSION_SAVE_EVERY_REQUEST = True
 
 JAZZMIN_SETTINGS = {
     "order_with_respect_to": [
@@ -189,3 +192,15 @@ JAZZMIN_SETTINGS = {
         "sellerpanel",
     ],
 }
+
+
+# INSTALLED_APPS += ['debug_toolbar']
+# MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+# INTERNAL_IPS = ['127.0.0.1']
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': BASE_DIR / 'django_cache',
+#     }
+# }

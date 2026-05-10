@@ -6,7 +6,7 @@
                 <img src="{% static 'image/logo.png' %}" alt="KAR Store" class="main-brand-logo">
             </a>
         </div>
-        {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'about' %}
+        {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'password_reset' and request.resolver_match.url_name != 'password_reset_done' and request.resolver_match.url_name != 'password_reset_complete' and request.resolver_match.url_name != 'password_reset_confirm' and request.resolver_match.url_name != 'select_interest' %}
 
         <div class="nav-search">
             
@@ -56,7 +56,7 @@
         </div>
     </header>
 
-    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'about' %}
+    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'password_reset' and request.resolver_match.url_name != 'password_reset_done' and request.resolver_match.url_name != 'password_reset_complete' and request.resolver_match.url_name != 'password_reset_confirm' and request.resolver_match.url_name != 'select_interest' %}
     <nav class="category-strip">
         <div class="mega-menu-container">
             <div class="nav-addon-info">

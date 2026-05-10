@@ -23,19 +23,18 @@ class CustomerActivityAdmin(admin.ModelAdmin):
 class CustomerUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomerUser
-        # यहाँ पासवर्ड फिल्डहरू राख्नु पर्दैन, UserCreationForm ले आफैँ मिलाउँछ
+        
         fields = ('username', 'email', 'role', 'gender', 'age', 'interests')
 
-# २. एडमिन क्लास
 class CustomerUserAdmin(BaseUserAdmin):
     add_form = CustomerUserCreationForm
     
     list_display = ('username', 'email', 'role', 'gender', 'display_interests', 'age')
-    list_filter = ('role', 'gender', 'id')
+    list_filter = ('role', 'gender', 'id', 'username')
     search_fields = ('username', 'email')
     filter_horizontal = ('interests',)
 
-    # युजर Edit गर्दा देखिने फिल्डहरू
+    
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('email',)}),
@@ -43,7 +42,7 @@ class CustomerUserAdmin(BaseUserAdmin):
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
     )
 
-    # ✅ नयाँ युजर थप्दा देखिने फिल्डहरू (यहाँ 'usable_password' कतै पनि नराख्ने)
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),

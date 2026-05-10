@@ -362,6 +362,12 @@ body {
     }
 
 
+.my-white-box-shadow {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        border-radius: 15px !important;
+    }
+
+
 /* 6. MOBILE RESPONSIVENESS */
 @media (max-width: 768px) {
     .top-header { flex-direction: column; gap: 10px; padding: 10px; }

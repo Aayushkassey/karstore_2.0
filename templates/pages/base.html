@@ -5,6 +5,7 @@
     <title>KAR Store</title>
     <link rel="icon" type="image/png" href="{% static 'image/logo.png' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     {% block extra_head %}
     {% endblock %}
@@ -105,6 +106,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+window.alert = function(message) {
+    Swal.fire({
+        title: 'Notification',
+        text: message,
+        icon: 'info',
+        width: '400px',
+        padding: '1rem', 
+        background: '#ffffff',
+        confirmButtonColor: '#f85606',
+        confirmButtonText: 'OK',
+        color: '#333',
+        customClass: {
+            popup: 'small-alert-popup',
+            title: 'small-alert-title',
+            confirmButton: 'small-alert-button'
+        }
+    });
+};
+
 </script>
 
 </body>

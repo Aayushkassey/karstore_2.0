@@ -9,7 +9,7 @@ def category_context(request):
         # यो क्याटेगोरीका सामानहरूबाट ब्रान्डको नाम तान्ने (Distinct गरेर)
         category.available_brands = Product.objects.filter(
             category=category
-        ).values_list('brand', flat=True).distinct()[:6] # टप ६ वटा मात्र देखाउन
+        ).values_list('brand', flat=True).distinct()[:6] # टप ६ वटा मात्र देखाउनz
         
     return {
         'categories': categories

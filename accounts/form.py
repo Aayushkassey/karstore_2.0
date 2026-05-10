@@ -29,7 +29,9 @@ class UserProfileForm(forms.ModelForm):
             }),
             'age': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter your age'
+                'min': 1,
+                'max': 100,
+                'placeholder': 'Enter  age in numbers'
             }),
             'interests': forms.CheckboxSelectMultiple(attrs={
                 'class': 'interest-checkbox-list' 
@@ -38,6 +40,8 @@ class UserProfileForm(forms.ModelForm):
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
+        if ' ' in username:
+            raise forms.ValidationError("Username cannot contain spaces.")
         if CustomerUser.objects.exclude(pk=self.instance.pk).filter(username=username).exists():
             raise forms.ValidationError("Username already taken. Please choose another.")
         return username
@@ -47,3 +51,11 @@ class UserProfileForm(forms.ModelForm):
         if CustomerUser.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
             raise forms.ValidationError("Email already registered. Please use a different email.")
         return email
+    
+    def clean_age(self):
+        age = self.cleaned_data.get('age')
+        if age is None:
+            raise forms.ValidationError("Please enter your age.")
+        if age < 1 or age > 100:
+            raise forms.ValidationError("Please enter a valid age between 1 and 100.")
+        return age

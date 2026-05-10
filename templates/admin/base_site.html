@@ -1,0 +1,91 @@
+{% extends "admin/base.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+
+<style>
+
+/* TOP TOOLBAR */
+#toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+/* SEARCH FORM */
+#changelist-search {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-wrap: wrap;
+}
+
+/* DROPDOWNS */
+#changelist-search select {
+    height: 42px !important;
+    min-width: 180px;
+    border-radius: 8px;
+}
+
+/* SEARCH INPUT */
+#changelist-search input[type="text"] {
+    height: 42px !important;
+    min-width: 300px;
+    border-radius: 8px;
+    margin: 0 !important;
+}
+
+/* SEARCH BUTTON */
+#changelist-search input[type="submit"] {
+    height: 42px !important;
+    padding: 0 22px !important;
+    border-radius: 8px;
+    margin: 0 !important;
+}
+
+/* ADD BUTTON */
+.object-tools .addlink,
+.btn-success {
+    height: 42px !important;
+    display: flex !important;
+    align-items: center;
+    border-radius: 8px !important;
+}
+
+/* REMOVE UGLY FIELD BOXES */
+#changelist-search .form-group,
+#changelist-search .form-inline,
+#changelist-search > div {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* MAKE EVERYTHING SAME HEIGHT */
+#changelist-search select,
+#changelist-search input[type="text"],
+#changelist-search input[type="submit"] {
+    height: 42px !important;
+    border-radius: 8px !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+
+/* ALIGN WHOLE ROW */
+#changelist-search {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap;
+}
+
+</style>
+
+{% endblock %}

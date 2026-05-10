@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select Interests</title>
-    <style>
+{% extends 'pages/base.html' %}
+{% load static %}
+
+{% block content %}
+       <style>
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -134,8 +132,6 @@
             }
         }
     </style>
-</head>
-<body>
 
 <div class="interest-container">
     <div class="header-row">
@@ -162,5 +158,63 @@
     </form>
 </div>
 
-</body>
-</html>
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+    
+        const checkboxes = document.querySelectorAll('input[name="interests"]:checked');
+        
+    
+        if (checkboxes.length === 0) {
+            e.preventDefault(); 
+            
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Selection Required',
+                    text: 'Please select at least one interest before saving, or click Skip.',
+                    icon: 'warning',
+                    background: '#ffffff',
+                    confirmButtonColor: '#007bff'
+                });
+            } else {
+                // यदि SweetAlert छैन भने साधारण alert
+                alert("Please select at least one interest before saving.");
+            }
+        }
+    });
+
+// page load only then add event listeners to links
+    document.addEventListener('DOMContentLoaded', function() {
+        // if the user tries to click any link without selecting interests, show an alert
+        const allLinks = document.querySelectorAll('a');
+
+        allLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+            
+                // if (!this.classList.contains('btn-skip')) and 
+                //!this.closest('.interest-container') checks if the clicked link is not the skip button 
+                //and is not inside the interest container
+                if (!this.classList.contains('btn-skip') && !this.closest('.interest-container')) {
+                    e.preventDefault(); // blocking the default action of the link
+                    
+                    Swal.fire({
+                        title: 'Action Required',
+                        text: 'Please select your interests or click "Skip" to continue to the store.',
+                        icon: 'info',
+                        background: '#ffffff',
+                        confirmButtonColor: '#007bff'
+                        width: '400px',
+                        padding: '1rem',
+                        customClass: {
+                            popup: 'small-alert-popup',
+                            title: 'small-alert-title',
+                            confirmButton: 'small-alert-button'
+                        }
+                    });
+                }
+            });
+        });
+    });
+
+</script>
+{% endblock %}

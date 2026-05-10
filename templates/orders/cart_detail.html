@@ -37,6 +37,21 @@
                         </td>
                         <td style="padding: 20px 10px;">
                             <span style="font-weight: 600; color: #333;">{{ item.product.name }}</span>
+  <a href="javascript:void(0)" 
+   onclick='manualShowProduct(event, 
+     "{{ item.product.name|escapejs }}", 
+     "{% if item.product.image_url %}{{ item.product.image_url }}{% elif item.product.image %}{{ item.product.image.url }}{% endif %}", 
+     "{{ item.product.discounted_price|floatformat:2 }}", 
+     "{{ item.product.price|floatformat:2 }}", 
+     "{{ item.product.description|escapejs }}", 
+     "{{ item.product.rating|default:0 }}", 
+     "{{ item.product.brand|escapejs }}", 
+     "{{ item.product.category.name|escapejs }}", 
+     "{{ item.product.stock|default:0 }}", 
+     "{{ item.product.id }}")' 
+   style="font-size: 12px; color: #f85606; text-decoration: none; font-weight: 600; border: 1px solid #f85606; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 5px;">
+   View Details
+</a>
                         </td>
                         <td style="color: #444;">
                             {% if item.product.discount_percentage > 0 %}
@@ -179,5 +194,13 @@ function updateCartPageQty(productId, action) {
 document.addEventListener('DOMContentLoaded', () => {
     calculateSelectedTotal(false);
 });
+
+
+function manualShowProduct(e, name, img, dPrice, rPrice, desc, rating, brand, cat, stock, id) {
+    if(e) e.preventDefault();
+    showProduct(e, name, img, dPrice, rPrice, desc, rating, brand, cat, stock, id);
+}
 </script>
+
+{% include 'components/product_modal.html' %}
 {% endblock %}

@@ -1,0 +1,46 @@
+/* सर्च र फिल्टरलाई एउटै आकर्षक पट्टीमा ल्याउन */
+.change-list #changelist-filter {
+    position: static !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    background: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 10px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* 'Filter' भन्ने हेडलाई सानो लेबल बनाउन */
+.change-list #changelist-filter h2 {
+    font-size: 14px !important;
+    background: #007bff !important;
+    color: white !important;
+    padding: 5px 15px !important;
+    margin: 0 15px 0 0 !important;
+    border-radius: 4px;
+}
+
+/* फिल्टरका लिस्टहरूलाई तेर्सो (Horizontal) बनाउन */
+.change-list #changelist-filter ul {
+    display: flex !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.change-list #changelist-filter li {
+    margin-right: 20px !important;
+    border-right: 1px solid #ddd;
+    padding-right: 15px !important;
+}
+
+/* सर्च बार (Toolbar) लाई सफा बनाउन */
+#toolbar {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 10px !important;
+}

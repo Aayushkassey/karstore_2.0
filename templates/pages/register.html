@@ -89,9 +89,22 @@
                 step2.classList.add('form-step-active');
             }
         } else {
-            alert("कृपया सुरुमा युजरनेम र ईमेल भर्नुहोस्।");
+            alert("Please fill in all required fields.");
         }
     });
+
+    // for space prevention in username
+const usernameInput = document.getElementById('username');
+usernameInput.addEventListener('keydown', function(e) {
+    if (e.key === " ") {
+        e.preventDefault();
+    }
+});
+
+// for copy paste prevention
+usernameInput.addEventListener('input', function() {
+    this.value = this.value.replace(/\s/g, '');
+});
 
     // २. 'Back' बटन Logic
     prevBtn.addEventListener('click', () => {
