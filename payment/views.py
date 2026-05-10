@@ -118,7 +118,11 @@ def payment_success(request, uuid):
     # ✅ Success Email
     subject = f"Order Confirmed - KAR Store (ID: {payment_record.uuid})"
     message = f"Hello {user.username},\n\nYour payment was successful! Your order details:\n\n{item_list}\nTotal: Rs. {payment_record.amount:.2f}\n\nThank you for shopping with KAR Store!"
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+    
+    try:
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=True)
+    except Exception as e:
+        print(f"Failed to send success email: {e}")
 
     items_to_process.delete()
 
@@ -160,6 +164,9 @@ def payment_failure(request, uuid):
     # ✅ Failure Email
     subject = "Payment Failed - KAR Store"
     message = f"Hi {user.username},\n\nWe couldn't process your payment for Transaction ID: {payment_record.uuid}. Please try again later."
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+    try:
+        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=True)
+    except Exception as e:
+        print(f"Failed to send failure email: {e}")
 
     return render(request, 'payment/failure.html', {'order': payment_record})
