@@ -123,11 +123,11 @@ def register(request):
         })
         
         email_message = EmailMessage(mail_subject, message, to=[email])
-        threading.Thread(
-            target=send_email_async,
-            args=(email_message,),
-            daemon=True
-        ).start()
+        try:
+            email_message.send(fail_silently=False)
+            print(f"[EMAIL] Activation email sent to {email}")
+        except Exception as e:
+            print(f"[EMAIL] FAILED - {e}")
 
         return render(request, 'pages/login.html', {
             "success": "Registration successful! Please check your email to verify your account."
