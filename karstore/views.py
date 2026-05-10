@@ -116,8 +116,12 @@ def register(request):
             'token': generate_token.make_token(user),
         })
         
-        email_message = EmailMessage(mail_subject, message, to=[email])
-        email_message.send()
+        try:
+            email_message = EmailMessage(mail_subject, message, to=[email])
+            email_message.send(fail_silently=True)
+        except Exception as e:
+    
+            print(f"Registration Email failed: {e}")
 
         return render(request, 'pages/login.html', {
             "success": "Registration successful! Please check your email to verify your account."

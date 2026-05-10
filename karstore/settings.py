@@ -108,17 +108,17 @@ WSGI_APPLICATION = 'karstore.wsgi.application'
 #         'PORT': config('DB_PORT'),
 #     }
 # }
-import dj_database_url #type: ignore
+import dj_database_url
+
+# यसले पहिला Render को Environment खोज्छ, नभेटे मात्र .env खोज्छ
+db_url = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default=None)
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', config('DATABASE_URL'))
+        default=db_url,
+        conn_max_age=60
     )
 }
-
-# Reuse DB connection for 60 seconds instead of opening/closing each request
-DATABASES['default']['CONN_MAX_AGE'] = 60
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
