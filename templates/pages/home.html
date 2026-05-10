@@ -31,7 +31,7 @@
         {# 2. POPULAR DISCOVERY #}
     {% if highly_searched %}
         <div class="section-header">
-            <h2>🔥 Popular Discovery</h2>
+            <h2> Popular Discovery</h2>
         </div> 
         <div class="product-grid">
             {% for product in highly_searched %}
@@ -48,9 +48,9 @@
             {% if query %}
                 🔍 {{ message }}
             {% elif selected_category %}
-                📂 Category: {{ selected_category.name }}
+                 Category: {{ selected_category.name }}
             {% else %}
-                📦 Featured Products
+                 Featured Products
             {% endif %}
         </h2>
     </div>
@@ -72,7 +72,7 @@
         </div>
 
         <p id="no-more-msg" style="display: none; color: #999; font-style: italic; margin-top: 20px;">
-            🎉 You've seen all products!
+             You've seen all products!
         </p>
     </div>
 

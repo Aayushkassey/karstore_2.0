@@ -76,11 +76,12 @@ def initiate_esewa(request, uuid):
 
 def payment_success(request, uuid):
     payment_record = get_object_or_404(Payment, uuid=uuid)
+    user= payment_record.user
     payment_record.status = "COMPLETE"
     payment_record.save()
 
     meta = payment_record.product_id
-    cart = Cart.objects.get(user=request.user)
+    cart = Cart.objects.get(user= user)
     
     if meta.startswith("SINGLE:"):
         p_id = meta.split(":")[1]
@@ -94,7 +95,7 @@ def payment_success(request, uuid):
     item_list = ""
     for item in items_to_process:
         Order.objects.create(
-            user=request.user,
+            user=user,
             product=item.product,
             quantity=item.quantity,
             final_price=item.product.discounted_price,
@@ -108,7 +109,7 @@ def payment_success(request, uuid):
         item_list += f"- {item.product.name} (Qty: {item.quantity}) - Rs. {item.product.discounted_price:.2f}\n"
 
         CustomerActivity.objects.create(
-            user=request.user,
+            user=user,
             action='purchase_success',
             product=item.product,
             transaction_id=payment_record.uuid,
@@ -116,8 +117,8 @@ def payment_success(request, uuid):
 
     # ✅ Success Email
     subject = f"Order Confirmed - KAR Store (ID: {payment_record.uuid})"
-    message = f"Hello {request.user.username},\n\nYour payment was successful! Your order details:\n\n{item_list}\nTotal: Rs. {payment_record.amount:.2f}\n\nThank you for shopping with KAR Store!"
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [request.user.email])
+    message = f"Hello {user.username},\n\nYour payment was successful! Your order details:\n\n{item_list}\nTotal: Rs. {payment_record.amount:.2f}\n\nThank you for shopping with KAR Store!"
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
     items_to_process.delete()
 
@@ -125,11 +126,12 @@ def payment_success(request, uuid):
 
 def payment_failure(request, uuid):
     payment_record = get_object_or_404(Payment, uuid=uuid)
+    user = payment_record.user
     payment_record.status = "FAILED"
     payment_record.save()
 
     meta = payment_record.product_id
-    cart = Cart.objects.get(user=request.user)
+    cart = Cart.objects.get(user=user)
 
     if meta.startswith("SINGLE:"):
         p_id = meta.split(":")[1]
@@ -142,14 +144,14 @@ def payment_failure(request, uuid):
 
     for item in items_to_process:
         Order.objects.create(
-            user=request.user,
+            user=user,
             product=item.product,
             quantity=item.quantity,
             final_price=item.product.discounted_price,
             status='Cancelled'
         )
         CustomerActivity.objects.create(
-            user=request.user,
+            user=user,
             action='purchase_failed',
             product=item.product,
             transaction_id=payment_record.uuid,
@@ -157,7 +159,7 @@ def payment_failure(request, uuid):
 
     # ✅ Failure Email
     subject = "Payment Failed - KAR Store"
-    message = f"Hi {request.user.username},\n\nWe couldn't process your payment for Transaction ID: {payment_record.uuid}. Please try again later."
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [request.user.email])
+    message = f"Hi {user.username},\n\nWe couldn't process your payment for Transaction ID: {payment_record.uuid}. Please try again later."
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
     return render(request, 'payment/failure.html', {'order': payment_record})
