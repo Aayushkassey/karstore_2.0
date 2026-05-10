@@ -5,11 +5,28 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
+import threading
 # Models Import
 from accounts.models import CustomerUser, CustomerActivity, Interest
 
-def login(request):
+import re
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMessage
+from .tokens import generate_token
+from django.contrib import messages
 
+
+def send_email_async(email_message):
+    try:
+        email_message.send(fail_silently=True)
+    except Exception as e:
+        print(f"Email failed: {e}")
+
+
+def login(request):
     cutoff_time = timezone.now() - timedelta(hours=24)
     CustomerUser.objects.filter(is_active=False, date_joined__lt=cutoff_time).delete()
 
@@ -30,11 +47,8 @@ def login(request):
             if user is not None:
                 auth_login(request, user)
 
-                # --- FIX STARTS HERE ---
-                # Admin/Seller ko activity record nagarne ra Unique Error hataune
                 if user.is_authenticated and not user.is_superuser and not user.is_staff and not user.role=='SELLER' and user.role == 'CUSTOMER':
                     CustomerActivity.objects.create(user=user, action='login')
-                # --- FIX ENDS HERE ---
 
                 if user.role == 'SELLER':
                     return redirect('dashboard')
@@ -50,14 +64,6 @@ def login(request):
 
     return render(request, 'pages/login.html')
 
-import re
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.core.mail import EmailMessage
-from .tokens import generate_token
-from django.contrib import messages
 
 def register(request):
     if request.user.is_authenticated:
@@ -116,12 +122,12 @@ def register(request):
             'token': generate_token.make_token(user),
         })
         
-        try:
-            email_message = EmailMessage(mail_subject, message, to=[email])
-            email_message.send(fail_silently=True)
-        except Exception as e:
-    
-            print(f"Registration Email failed: {e}")
+        email_message = EmailMessage(mail_subject, message, to=[email])
+        threading.Thread(
+            target=send_email_async,
+            args=(email_message,),
+            daemon=True
+        ).start()
 
         return render(request, 'pages/login.html', {
             "success": "Registration successful! Please check your email to verify your account."
@@ -129,19 +135,17 @@ def register(request):
 
     return render(request, 'pages/register.html')
 
+
 def activate(request, uidb64, token):
     try:
-        # १. UID डिकोड गर्ने
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = CustomerUser.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, CustomerUser.DoesNotExist):
         user = None
 
-    # २. टोकन चेक गर्ने र युजर एक्टिभेट गर्ने
     if user is not None and generate_token.check_token(user, token):
         user.is_active = True
         user.save()
-        
         auth_login(request, user)
         
         if user.role == 'SELLER':
@@ -151,7 +155,8 @@ def activate(request, uidb64, token):
     else:
         messages.error(request, "Activation link is invalid or expired!")
         return redirect('login')
-    
+
+
 @login_required
 def logout_view(request):
     if request.user.is_authenticated and not request.user.is_superuser and not request.user.is_staff and not request.user.role=='SELLER' and request.user.role == 'CUSTOMER':
@@ -162,6 +167,7 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+
 @login_required
 def select_interest(request):
     interests = Interest.objects.all()
@@ -169,27 +175,25 @@ def select_interest(request):
         selected_ids = request.POST.getlist("interests")
         if selected_ids:
             request.user.interests.set(selected_ids)
-        
-
         request.user.has_set_interests = True
         request.user.save()
         return redirect("home")
     return render(request, "pages/select_interest.html", {"interests": interests})
 
+
 def skip_interests(request):
     if request.user.is_authenticated:
-
         request.user.has_set_interests = True
         request.user.save()
     return redirect('home')
-    
 
-# AJAX Validation Utils
+
 def check_username(request):
     value = request.GET.get('value', '').strip()
     exists = CustomerUser.objects.filter(username__iexact=value).exists()
     status = "<span style='color:red;'>Taken!</span>" if exists else "<span style='color:green;'>Available</span>"
     return HttpResponse(status)
+
 
 def check_email(request):
     value = request.GET.get('value', '').strip()

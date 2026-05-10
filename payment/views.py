@@ -4,20 +4,27 @@ from django.conf import settings
 from .models import Payment
 from django_esewa import EsewaPayment
 import uuid
+import threading
 from accounts.models import CustomerActivity
 from orders.models import Cart, Order, CartItem
+
+
+def send_email_async(subject, message, from_email, recipient):
+    try:
+        send_mail(subject, message, from_email, recipient, fail_silently=True)
+    except Exception as e:
+        print(f"Email failed: {e}")
+
 
 def checkout_process(request):
     if request.method == 'POST':
         amount = request.POST.get('total_price') 
         email = request.user.email
         
-        # १. डाटा तान्ने
         is_single = request.POST.get('is_single_checkout') == 'true'
         single_id = request.POST.get('single_product_id', '')
         selected_ids = request.POST.get('selected_item_ids', '')
 
-        # २. Metadata सेभ गर्ने (SINGLE वा CART)
         if is_single:
             meta_data = f"SINGLE:{single_id}"
         elif selected_ids:
@@ -37,6 +44,7 @@ def checkout_process(request):
         )
 
         return redirect('payment:initiate_esewa', uuid=payment_record.uuid)
+
 
 def initiate_esewa(request, uuid):
     order = get_object_or_404(Payment, uuid=uuid)
@@ -74,14 +82,15 @@ def initiate_esewa(request, uuid):
     }
     return render(request, 'payment/confirm_payment.html', context)
 
+
 def payment_success(request, uuid):
     payment_record = get_object_or_404(Payment, uuid=uuid)
-    user= payment_record.user
+    user = payment_record.user
     payment_record.status = "COMPLETE"
     payment_record.save()
 
     meta = payment_record.product_id
-    cart = Cart.objects.get(user= user)
+    cart = Cart.objects.get(user=user)
     
     if meta.startswith("SINGLE:"):
         p_id = meta.split(":")[1]
@@ -101,13 +110,10 @@ def payment_success(request, uuid):
             final_price=item.product.discounted_price,
             status='Completed'
         )
-
         product = item.product
         product.stock = max(0, product.stock - item.quantity)
         product.save()
-
         item_list += f"- {item.product.name} (Qty: {item.quantity}) - Rs. {item.product.discounted_price:.2f}\n"
-
         CustomerActivity.objects.create(
             user=user,
             action='purchase_success',
@@ -115,18 +121,18 @@ def payment_success(request, uuid):
             transaction_id=payment_record.uuid,
         )
 
-    # ✅ Success Email
     subject = f"Order Confirmed - KAR Store (ID: {payment_record.uuid})"
     message = f"Hello {user.username},\n\nYour payment was successful! Your order details:\n\n{item_list}\nTotal: Rs. {payment_record.amount:.2f}\n\nThank you for shopping with KAR Store!"
     
-    try:
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=True)
-    except Exception as e:
-        print(f"Failed to send success email: {e}")
+    threading.Thread(
+        target=send_email_async,
+        args=(subject, message, settings.EMAIL_HOST_USER, [user.email]),
+        daemon=True
+    ).start()
 
     items_to_process.delete()
-
     return render(request, 'payment/success.html', {'order': payment_record})
+
 
 def payment_failure(request, uuid):
     payment_record = get_object_or_404(Payment, uuid=uuid)
@@ -161,12 +167,13 @@ def payment_failure(request, uuid):
             transaction_id=payment_record.uuid,
         )
 
-    # ✅ Failure Email
     subject = "Payment Failed - KAR Store"
     message = f"Hi {user.username},\n\nWe couldn't process your payment for Transaction ID: {payment_record.uuid}. Please try again later."
-    try:
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=True)
-    except Exception as e:
-        print(f"Failed to send failure email: {e}")
+    
+    threading.Thread(
+        target=send_email_async,
+        args=(subject, message, settings.EMAIL_HOST_USER, [user.email]),
+        daemon=True
+    ).start()
 
     return render(request, 'payment/failure.html', {'order': payment_record})
