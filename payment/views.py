@@ -11,7 +11,7 @@ from orders.models import Cart, Order, CartItem
 
 def send_email_async(subject, message, from_email, recipient):
     try:
-        send_mail(subject, message, from_email, recipient, fail_silently=True)
+        send_mail(subject, message, from_email, recipient, fail_silently=False)
     except Exception as e:
         print(f"Email failed: {e}")
 
@@ -124,11 +124,7 @@ def payment_success(request, uuid):
     subject = f"Order Confirmed - KAR Store (ID: {payment_record.uuid})"
     message = f"Hello {user.username},\n\nYour payment was successful! Your order details:\n\n{item_list}\nTotal: Rs. {payment_record.amount:.2f}\n\nThank you for shopping with KAR Store!"
     
-    threading.Thread(
-        target=send_email_async,
-        args=(subject, message, settings.EMAIL_HOST_USER, [user.email]),
-        daemon=True
-    ).start()
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
 
     items_to_process.delete()
     return render(request, 'payment/success.html', {'order': payment_record})
@@ -170,10 +166,6 @@ def payment_failure(request, uuid):
     subject = "Payment Failed - KAR Store"
     message = f"Hi {user.username},\n\nWe couldn't process your payment for Transaction ID: {payment_record.uuid}. Please try again later."
     
-    threading.Thread(
-        target=send_email_async,
-        args=(subject, message, settings.EMAIL_HOST_USER, [user.email]),
-        daemon=True
-    ).start()
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
 
     return render(request, 'payment/failure.html', {'order': payment_record})
