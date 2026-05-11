@@ -23,6 +23,7 @@ from ml_services.services.recsys import get_recommendations, get_popular_product
 from retention.models import UserRecommendation, PopularProducts
 
 from django.core.cache import cache
+import cloudinary.uploader
 
 # 1. Main Home View (Search + Random Discovery)
 # def home(request):
@@ -435,6 +436,15 @@ def add_product(request):
         
         discount_perc = float(discount_val) if discount_val and discount_val.strip() != "" else 0.0
 
+        cloudinary_url = None
+        if image:
+            try:
+                result = cloudinary.uploader.upload(image)
+                cloudinary_url = result['secure_url']
+            except Exception as e:
+                messages.error(request, f"Image upload failed: {e}")
+                return render(request, 'pages/add_product.html', {'categories': categories})
+
         try:
         
             if category_id == 'new_category' and new_category_name:
@@ -455,7 +465,8 @@ def add_product(request):
                 stock=int(stock) if stock else 0,
                 description=description,
                 category=category_obj,
-                image=image,
+                image='',
+                image_url=cloudinary_url,
                 sku=sku
             )
             messages.success(request, "Product added successfully!")
@@ -499,7 +510,14 @@ def edit_product(request, product_id):
             product.category = get_object_or_404(Category, id=category_id)
         
         if request.FILES.get("image"):
-            product.image = request.FILES.get("image")
+            image_file = request.FILES.get("image")
+            try:
+                result = cloudinary.uploader.upload(image_file)
+                product.image_url = result['secure_url']
+                product.image = ''
+            except Exception as e:
+                messages.error(request, f"Image upload failed: {e}")
+                return render(request, 'pages/edit_product.html', {'product': product, 'categories': categories})
             
         product.save()
         messages.success(request, f"Product '{product.name}' updated successfully!")
