@@ -13,7 +13,7 @@
          onclick='handleViewDetails(
                 event,
                 "{{ product.name|escapejs }}",
-                "{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}",
+                "{{ product.display_image }}",
                 "{{ product.discounted_price|floatformat:2 }}",
                 "{{ product.price|floatformat:2 }}",
                 "{{ product.description|escapejs }}",
@@ -43,8 +43,7 @@
             </span>
         </div>
 
-        <img src="{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% else %}{% static 'image/logo.png' %}{% endif %}" 
-             alt="{{ product.name }}"
+        <img src="{% if product.display_image %}{{ product.display_image }}{% else %}{% static 'image/logo.png' %}{% endif %}"
              style="max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none;">
 
         <div style="position: absolute; bottom: 10px; left: 10px; display: flex; flex-direction: column; gap: 2px;">
@@ -93,7 +92,7 @@
                     onclick='handleViewDetails(
                             event,
                             "{{ product.name|escapejs }}",
-                            "{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% endif %}",
+                            "{{ product.display_image }}",
                             "{{ product.discounted_price|floatformat:2 }}",
                             "{{ product.price|floatformat:2 }}",
                             "{{ product.description|escapejs }}",
