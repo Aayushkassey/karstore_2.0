@@ -1,10 +1,8 @@
-# products/admin.py
-
 from django.contrib import admin
 from django.db.models import Sum
 from .models import Product, Category
-
 from django.utils.html import format_html
+import cloudinary.uploader
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -25,11 +23,19 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('category', 'rating', 'stock')
     search_fields = ('name', 'sku')
 
+    def save_model(self, request, obj, form, change):
+        if 'image' in request.FILES:
+            try:
+                result = cloudinary.uploader.upload(request.FILES['image'])
+                obj.image_url = result['secure_url']
+                obj.image = ''
+            except Exception:
+                pass
+        super().save_model(request, obj, form, change)
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.annotate(
-            total_sales_annotated=Sum('order__quantity')
-        )
+        return qs.annotate(total_sales_annotated=Sum('order__quantity'))
 
     def total_sales_display(self, obj):
         total = getattr(obj, 'total_sales_annotated', None) or 0
