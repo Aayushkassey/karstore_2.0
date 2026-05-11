@@ -62,6 +62,13 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('CLOUDINARY_API_KEY'),
     'API_SECRET': config('CLOUDINARY_API_SECRET'),
 }
+import cloudinary
+
+cloudinary.config(
+    cloud_name="duasplhbm",
+    api_key="748713972658123",
+    api_secret="Y5YThJtdMkswKyonMEgZk6XN6oE"
+)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 INSTALLED_APPS += ['django_cleanup.apps.CleanupConfig']
