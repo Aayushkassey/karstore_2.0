@@ -103,7 +103,7 @@
 
                 <div class="image-preview-container">
                     <p style="font-size: 11px; font-weight: 700; color: #bbb; margin-bottom: 10px; letter-spacing: 1px;">CURRENT IMAGE</p>
-                    {% if product.image %}
+                    {% if product.display_image %}
                         <img src="{{ product.display_image }}" class="current-img">
                     {% endif %}
                     <input type="file" name="image" class="form-input" style="background: none; border: none; padding: 0; font-size: 12px; text-align: center;">
