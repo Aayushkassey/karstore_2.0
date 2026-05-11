@@ -52,11 +52,10 @@ EXTERNAL_APPS = [
     'retention.apps.RetentionConfig',
 ]
 INSTALLED_APPS += EXTERNAL_APPS
-INSTALLED_APPS += ['django_cleanup.apps.CleanupConfig']
+INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
 
 AUTH_USER_MODEL = 'accounts.CustomerUser'
 
-INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
@@ -65,6 +64,7 @@ CLOUDINARY_STORAGE = {
 }
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+INSTALLED_APPS += ['django_cleanup.apps.CleanupConfig']
 
 TEMPLATES =[
     {
