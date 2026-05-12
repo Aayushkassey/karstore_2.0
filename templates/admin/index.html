@@ -134,16 +134,32 @@
 
   <!-- ===================== SEND EMAILs ===================== -->
 <!-- DEMO: Send Retention Emails Button -->
+
 <div class="row mb-3">
   <div class="col-12">
-    <button 
-      id="sendEmailBtn" 
-      type="button"
-      style="background:#dc3545;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;"
-    >
-      <i class="fas fa-envelope mr-2"></i> Send Retention Emails
-    </button>
-    <span id="emailStatus" style="margin-left:15px;font-weight:600;"></span>
+      <button 
+        id="sendEmailBtn" 
+        type="button"
+        style="background:#dc3545;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;"
+      >
+       <i class="fas fa-envelope mr-2"></i> Send Retention Emails
+      </button>
+
+      
+      <span id="emailStatus" style="margin-left:15px;font-weight:600;"></span>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-12">
+      <button
+        id="sendMediumEmailBtn"
+        style="background:#27ae60;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;"
+        onclick="sendMediumEmails()"
+        >
+        <i class="fas fa-envelope mr-2"></i> Send Appreciation Emails (Medium Risk)
+      </button>
+      <span id="mediumEmailStatus" style="margin-left:15px;font-weight:600;"></span>
   </div>
 </div>
   <!-- ===================== CHARTS ===================== -->
@@ -308,7 +324,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-
+  // ===================== Emails =====================
+  // ===================== high risk email =====================
   (function() {
     // 1. CSS Injection (So you don't need a separate file)
     const style = document.createElement('style');
@@ -363,6 +380,66 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Ensure the script runs even if loaded after DOM is ready
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        init();
+    } else {
+        document.addEventListener("DOMContentLoaded", init);
+    }
+})();
+  
+
+  // ===================== medium risk email =====================
+(function() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #sendMediumEmailBtn:hover { background: #1e7e34 !important; }
+        #sendMediumEmailBtn:active { transform: scale(0.96); }
+        #sendMediumEmailBtn { transition: all 0.1s ease; }
+    `;
+    document.head.appendChild(style);
+
+    function init() {
+        const btn = document.getElementById('sendMediumEmailBtn');
+        const status = document.getElementById('mediumEmailStatus');
+
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+            console.log("MEDIUM CLICK DETECTED - Starting Fetch...");
+
+            btn.disabled = true;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+
+            status.style.color = '#ffc107';
+            status.innerText = 'Processing...';
+
+            fetch('/api/retention/send-medium-emails/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || ''
+                }
+            })
+            .then(r => {
+                if (!r.ok) throw new Error('Server error');
+                return r.json();
+            })
+            .then(data => {
+                status.style.color = '#28a745';
+                status.innerText = `✓ Sent: ${data.sent}, Skipped: ${data.skipped}`;
+            })
+            .catch(err => {
+                console.error(err);
+                status.style.color = '#dc3545';
+                status.innerText = '✗ Failed';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            });
+        });
+    }
+
     if (document.readyState === "complete" || document.readyState === "interactive") {
         init();
     } else {
@@ -424,32 +501,19 @@ document.addEventListener('DOMContentLoaded', function () {
   // ===================== TREND LINE =====================
 
   new Chart(document.getElementById('churnTrendChart'), {
-
     type: 'line',
-
     data: {
-
       labels: {{ trend_labels|safe }},
-
       datasets: [{
         label: 'Average Churn Probability',
-
         data: {{ trend_values|safe }},
-
         borderColor: '#6366f1',
-
         backgroundColor: trendGradient,
-
         fill: true,
-
         tension: 0.45,
-
         pointRadius: 5,
-
         pointHoverRadius: 8,
-
         pointBackgroundColor: '#6366f1',
-
         borderWidth: 3
       }]
     },
@@ -678,25 +742,15 @@ body{
 /* ===================== RISK CARDS ===================== */
 
 .risk-card{
-
   display:flex;
-
   align-items:center;
-
   gap:18px;
-
   padding:24px;
-
   border-radius:22px;
-
   color:white;
-
   position:relative;
-
   overflow:hidden;
-
   box-shadow: var(--shadow);
-
   transition:.3s ease;
 }
 
@@ -735,15 +789,11 @@ body{
 
   width:65px;
   height:65px;
-
   border-radius:18px;
-
   background: rgba(255,255,255,.18);
-
   display:flex;
   align-items:center;
   justify-content:center;
-
   font-size:1.6rem;
 }
 
@@ -762,17 +812,11 @@ body{
 /* ===================== DASHBOARD CARDS ===================== */
 
 .dashboard-card{
-
   border-radius:26px;
-
   overflow:hidden;
-
   background: rgba(255,255,255,.75);
-
   backdrop-filter: blur(12px);
-
   box-shadow: var(--shadow);
-
   transition:.35s ease;
 }
 
@@ -781,9 +825,7 @@ body{
 }
 
 .dashboard-header{
-
   padding:22px 26px;
-
   border-bottom:
     1px solid rgba(148,163,184,.12);
 }
@@ -806,51 +848,35 @@ body{
 /* ===================== TABLES ===================== */
 
 .table{
-
   border-collapse: separate !important;
-
   border-spacing: 0 12px !important;
 }
 
 .table thead th{
-
   border:none !important;
-
   color:var(--muted);
-
   text-transform:uppercase;
-
   letter-spacing:.6px;
-
   font-size:.78rem;
-
   font-weight:800;
 }
 
 .table tbody tr{
-
   background:white;
-
   transition:.25s ease;
-
   box-shadow:
     0 4px 15px rgba(0,0,0,.04);
 }
 
 .table tbody tr:hover{
-
   transform:scale(1.01);
-
   box-shadow:
     0 12px 24px rgba(0,0,0,.08);
 }
 
 .table td{
-
   border-top:none !important;
-
   padding:18px !important;
-
   vertical-align:middle;
 }
 
@@ -859,7 +885,6 @@ body{
 .info-card,
 .dashboard-card,
 .risk-card{
-
   animation: fadeUp .7s ease;
 }
 
@@ -942,6 +967,30 @@ section.content > .container-fluid > .row:not(:first-child),
 
 /* Disabled state */
 #sendEmailBtn:disabled {
+    background: #6c757d !important; /* Gray out when sending */
+    cursor: not-allowed;
+    transform: none;
+}
+/* STYLE FOR MEDIUM RISK BUTTON */
+#sendMediumEmailBtn {
+    transition: transform 0.1s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Hover effect */
+#sendMediumEmailBtn:hover {
+    background: #027512 !important; /* Slightly darker red */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* The "Click" feedback */
+#sendMediumEmailBtn:active {
+    transform: scale(0.97); /* Shrinks slightly */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Disabled state */
+#sendMediumEmailBtn:disabled {
     background: #6c757d !important; /* Gray out when sending */
     cursor: not-allowed;
     transform: none;

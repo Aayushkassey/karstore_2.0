@@ -7,8 +7,8 @@ from django.utils import timezone
 from accounts.models import CustomerUser
 from products.models import Product
 from retention.models import ChurnRecord, RetentionEmail
-from ml_services.services.churn import get_churn_score
-from ml_services.services.recsys import get_recommendations, get_popular_products
+# from ml_services.services.churn import get_churn_score
+# from ml_services.services.recsys import get_recommendations, get_popular_products
 
 
 # DASHBOARD 
@@ -97,46 +97,46 @@ def dashboard_data(request):
         "recent_emails": list(recent_emails),
     })
 
-
-# BANNER API
 @require_GET
 def banner_data(request):
     """
     GET /api/retention/banner/
-    Called when a user logs in to determine what banner to show.
-    Returns banner type and recommended products.
+    Reads from DB cache — no live API calls.
     """
     if not request.user.is_authenticated:
         return JsonResponse({"show": False})
 
     user = request.user
 
-    # Skip synthetic users
     if user.email.endswith('@synthetic.karstore.com'):
         return JsonResponse({"show": False})
 
-    # Get churn score
-    result = get_churn_score(user.id)
+    # ── GET CHURN FROM DB (not live API) ──────────────────────────────────
+    from retention.models import ChurnRecord, UserRecommendation, PopularProducts
 
-    if result.get('error') or result.get('churn_probability') is None:
+    latest_churn = ChurnRecord.objects.filter(
+        user=user
+    ).order_by('-scored_at').first()
+
+    if not latest_churn:
         return JsonResponse({"show": False})
 
-    churn_prob = result['churn_probability']
-    risk_level = result['risk_level']
+    churn_prob = latest_churn.churn_probability
+    risk_level = latest_churn.risk_level
 
     # Low risk — no banner
     if risk_level == 'low':
         return JsonResponse({"show": False, "risk_level": "low"})
 
-    # Get recommendations
-    recs = get_recommendations(user.id, top_n=5)
-    product_ids = recs.get('recommendations', [])
+    # ── GET RECOMMENDATIONS FROM DB (not live API) ────────────────────────
+    try:
+        user_rec    = UserRecommendation.objects.get(user=user)
+        product_ids = user_rec.product_ids[:5]
+    except UserRecommendation.DoesNotExist:
+        pop         = PopularProducts.objects.first()
+        product_ids = pop.product_ids[:5] if pop else []
 
-    if not product_ids:
-        recs = get_popular_products(top_n=5)
-        product_ids = recs.get('recommendations', [])
-
-    # Fetch product details from DB
+    # Fetch product details
     products = Product.objects.filter(
         id__in=product_ids,
         stock__gt=0
@@ -145,39 +145,124 @@ def banner_data(request):
         'discount_percentage', 'image_url'
     )[:5]
 
-    product_list = []
-    for p in products:
-        product_list.append({
+    product_list = [
+        {
             "id":                  p['id'],
             "name":                p['name'],
             "price":               p['price'],
             "discount_percentage": p['discount_percentage'],
-        })
+        }
+        for p in products
+    ]
 
-    # High risk — discount banner
     if risk_level == 'high':
         return JsonResponse({
-            "show":             True,
-            "type":             "discount",
-            "risk_level":       "high",
+            "show":              True,
+            "type":              "discount",
+            "risk_level":        "high",
             "churn_probability": churn_prob,
-            "message":          "We miss you! Here are some deals picked just for you.",
-            "recommendations":  product_list,
+            "message":           "We miss you! Here are some deals picked just for you.",
+            "recommendations":   product_list,
         })
 
-    # Medium risk — recommendations banner
     return JsonResponse({
-        "show":             True,
-        "type":             "recommendations",
-        "risk_level":       "medium",
+        "show":              True,
+        "type":              "recommendations",
+        "risk_level":        "medium",
         "churn_probability": churn_prob,
-        "message":          "Products we think you'll love.",
-        "recommendations":  product_list,
+        "message":           "Products we think you'll love.",
+        "recommendations":   product_list,
     })
 
 @staff_member_required
-@require_POST
+@require_POST # HIGH RISK EMAILS
 def trigger_retention_emails(request):
     from retention.tasks import send_retention_emails
     result = send_retention_emails()
     return JsonResponse(result)
+
+@staff_member_required
+@require_POST # MEDIUM RISK EMAILS
+def trigger_medium_emails(request):
+    from retention.tasks import send_medium_risk_emails
+    result = send_medium_risk_emails()
+    return JsonResponse(result)
+
+# fetch from api 
+# BANNER API
+# @require_GET
+# def banner_data(request):
+#     """
+#     GET /api/retention/banner/
+#     Called when a user logs in to determine what banner to show.
+#     Returns banner type and recommended products.
+#     """
+#     if not request.user.is_authenticated:
+#         return JsonResponse({"show": False})
+
+#     user = request.user
+
+#     # Skip synthetic users
+#     if user.email.endswith('@synthetic.karstore.com'):
+#         return JsonResponse({"show": False})
+
+#     # Get churn score
+#     result = get_churn_score(user.id)
+
+#     if result.get('error') or result.get('churn_probability') is None:
+#         return JsonResponse({"show": False})
+
+#     churn_prob = result['churn_probability']
+#     risk_level = result['risk_level']
+
+#     # Low risk — no banner
+#     if risk_level == 'low':
+#         return JsonResponse({"show": False, "risk_level": "low"})
+
+#     # Get recommendations
+#     recs = get_recommendations(user.id, top_n=5)
+#     product_ids = recs.get('recommendations', [])
+
+#     if not product_ids:
+#         recs = get_popular_products(top_n=5)
+#         product_ids = recs.get('recommendations', [])
+
+#     # Fetch product details from DB
+#     products = Product.objects.filter(
+#         id__in=product_ids,
+#         stock__gt=0
+#     ).values(
+#         'id', 'name', 'price',
+#         'discount_percentage', 'image_url'
+#     )[:5]
+
+#     product_list = []
+#     for p in products:
+#         product_list.append({
+#             "id":                  p['id'],
+#             "name":                p['name'],
+#             "price":               p['price'],
+#             "discount_percentage": p['discount_percentage'],
+#         })
+
+#     # High risk — discount banner
+#     if risk_level == 'high':
+#         return JsonResponse({
+#             "show":             True,
+#             "type":             "discount",
+#             "risk_level":       "high",
+#             "churn_probability": churn_prob,
+#             "message":          "We miss you! Here are some deals picked just for you.",
+#             "recommendations":  product_list,
+#         })
+
+#     # Medium risk — recommendations banner
+#     return JsonResponse({
+#         "show":             True,
+#         "type":             "recommendations",
+#         "risk_level":       "medium",
+#         "churn_probability": churn_prob,
+#         "message":          "Products we think you'll love.",
+#         "recommendations":  product_list,
+#     })
+

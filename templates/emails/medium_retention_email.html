@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#f0f2f5; font-family:'Segoe UI', Arial, sans-serif; }
+    .wrapper { max-width:620px; margin:30px auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.10); }
+    .header { background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding:28px 32px; text-align:center; }
+    .header h1 { color:#fff; font-size:26px; letter-spacing:3px; font-weight:800; }
+    .header .tagline { color:#f85606; font-size:12px; letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
+    .greeting-section { padding:28px 32px 0; }
+    .greeting { font-size:20px; font-weight:700; color:#1a1a2e; margin-bottom:8px; }
+    .subtext { color:#666; font-size:14px; line-height:1.7; }
+    .thank-box { margin:24px 32px 0; background:linear-gradient(135deg, #f0fff4, #e8f5e9); border-left:4px solid #27ae60; border-radius:8px; padding:16px 20px; }
+    .thank-box p { color:#2e7d32; font-size:14px; line-height:1.7; }
+    .section-wrap { padding:24px 32px 0; }
+    .section-title { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+    .section-title span { font-size:15px; font-weight:700; color:#1a1a2e; }
+    .section-title .line { flex:1; height:1px; background:#eee; }
+    .product-grid { display:table; width:100%; border-collapse:separate; border-spacing:10px; }
+    .product-cell { display:table-cell; width:33.33%; vertical-align:top; }
+    .product-card { border:1px solid #f0f0f0; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .img-wrap { width:100%; height:110px; overflow:hidden; background:#f8f8f8; }
+    .img-wrap img { width:100%; height:110px; object-fit:contain; padding:8px; }
+    .no-img { width:100%; height:110px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:11px; }
+    .card-body { padding:10px; }
+    .p-name { font-size:11px; font-weight:700; color:#222; margin-bottom:4px; line-height:1.4; height:30px; overflow:hidden; }
+    .p-price { font-size:12px; color:#f85606; font-weight:700; margin-bottom:2px; }
+    .p-discount { font-size:10px; color:#27ae60; font-weight:600; margin-bottom:8px; }
+    .p-btn { display:block; text-align:center; padding:7px 4px; background:#27ae60; color:#fff !important; text-decoration:none; border-radius:6px; font-size:11px; font-weight:700; }
+    .cta-wrap { padding:24px 32px; text-align:center; }
+    .cta-box { background:linear-gradient(135deg, #f0fff4, #e8f5e9); border:1.5px dashed #27ae60; border-radius:12px; padding:20px; }
+    .cta-box p { color:#555; font-size:13px; margin-bottom:14px; }
+    .cta-btn { display:inline-block; padding:12px 36px; background:#27ae60; color:#fff !important; text-decoration:none; border-radius:8px; font-weight:700; font-size:14px; }
+    .footer { background:#f9f9f9; text-align:center; padding:18px 32px; border-top:1px solid #eee; }
+    .footer p { font-size:11px; color:#aaa; line-height:1.8; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <h1>KAR STORE</h1>
+    <div class="tagline">Smart Shopping · Quality Products</div>
+  </div>
+
+  <div class="greeting-section">
+    <p class="greeting">Namaste, {{ user.username }} 👋</p>
+    <p class="subtext">We truly appreciate your support and loyalty to KAR Store.</p>
+  </div>
+
+  <div class="thank-box">
+    <p>🙏 <strong>Thank you for being a valued member of KAR Store!</strong><br>
+    Your trust means everything to us. We're always working to bring you
+    the best products at the best prices.</p>
+  </div>
+
+  {% if products %}
+  <div class="section-wrap">
+    <div class="section-title">
+      <span>🔥 Trending Right Now</span>
+      <div class="line"></div>
+    </div>
+    <table class="product-grid">
+      <tr>
+        {% for product in products %}
+        <td class="product-cell">
+          <div class="product-card">
+            <div class="img-wrap">
+              {% if product.image %}
+                <img src="{{ SITE_URL }}{{ product.image.url }}" alt="{{ product.name }}">
+              {% elif product.image_url %}
+                <img src="{{ product.image_url }}" alt="{{ product.name }}">
+              {% else %}
+                <div class="no-img">No Image</div>
+              {% endif %}
+            </div>
+            <div class="card-body">
+              <div class="p-name">{{ product.name }}</div>
+              <div class="p-price">Rs. {{ product.price|floatformat:0 }}</div>
+              {% if product.discount_percentage and product.discount_percentage > 0 %}
+                <div class="p-discount">{{ product.discount_percentage|floatformat:0 }}% OFF</div>
+              {% endif %}
+              <a href="{{ SITE_URL }}/product/{{ product.id }}/" class="p-btn">View Product</a>
+            </div>
+          </div>
+        </td>
+        {% endfor %}
+      </tr>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="cta-wrap">
+    <div class="cta-box">
+      <p>Explore hundreds of products — new arrivals added regularly!</p>
+      <a href="{{ SITE_URL }}" class="cta-btn">Explore KAR Store →</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>You're receiving this because you have an account at KAR Store.</p>
+    <p>&copy; 2026 KAR Store, Pokhara, Nepal</p>
+  </div>
+
+</div>
+</body>
+</html>

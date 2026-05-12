@@ -158,7 +158,7 @@ def score_all_users():
     print(f"  Scored: {scored}, Failed: {failed}, Skipped: {skipped}")
     return {"scored": scored, "failed": failed}
 
-
+# HIGH RISK EMAILS
 def send_retention_emails():
     """
     Weekly job: send retention emails to high risk users.
@@ -269,7 +269,7 @@ def send_retention_emails():
 
     print(f"  Sent: {sent}, Skipped: {skipped}")
     return {"sent": sent, "skipped": skipped}
-
+# SEND HIGH RISk EMAILS
 def _send_retention_email(user, products, churn_probability, is_cold_start=False):
     try:
         from django.template.loader import render_to_string
@@ -314,4 +314,112 @@ def _send_retention_email(user, products, churn_probability, is_cold_start=False
 
     except Exception as e:
         print(f"  Email failed for {user.username}: {e}")
+        return False
+    
+# MEDIUM RISK EMAILS
+def send_medium_risk_emails():
+    """
+    Send appreciation + trending emails to medium risk users.
+    Max one email per user per 7 days.
+    """
+    print(f"[{timezone.now()}] Starting medium risk email job...")
+    seven_days_ago = timezone.now() - timezone.timedelta(days=7)
+
+    from django.db.models import Max
+
+    latest_scores = (
+        ChurnRecord.objects
+        .exclude(user__email__endswith='@synthetic.karstore.com')
+        .values('user')
+        .annotate(latest=Max('scored_at'))
+    )
+
+    sent    = 0
+    skipped = 0
+
+    for entry in latest_scores:
+        record = ChurnRecord.objects.filter(
+            user_id   = entry['user'],
+            scored_at = entry['latest']
+        ).first()
+
+        if not record:
+            continue
+
+        if record.risk_level != 'medium':
+            skipped += 1
+            continue
+
+        user = record.user
+
+        if user.email.endswith('@synthetic.karstore.com'):
+            skipped += 1
+            continue
+
+        # recently_emailed = RetentionEmail.objects.filter(
+        #     user         = user,
+        #     sent_at__gte = seven_days_ago,
+        #     was_sent     = True
+        # ).exists()
+
+        # if recently_emailed:
+        #     skipped += 1
+        #     continue
+
+        # Get 3 random products from position 5-20 in popular list
+        import random
+        pop_cache  = PopularProducts.objects.first()
+        pop_ids    = pop_cache.product_ids[4:20] if pop_cache else []  # index 4-19 = position 5-20
+        random_ids = random.sample(pop_ids, min(3, len(pop_ids)))
+
+        products    = Product.objects.filter(
+            id__in  = random_ids,
+            stock__gt = 0
+        )[:3]
+
+        success = _send_medium_email(user, products)
+
+        RetentionEmail.objects.create(
+            user       = user,
+            email_type = 'recommendations',
+            was_sent   = success,
+            error      = None if success else 'Email send failed'
+        )
+
+        if success:
+            sent += 1
+        else:
+            skipped += 1
+
+    print(f"  Sent: {sent}, Skipped: {skipped}")
+    return {"sent": sent, "skipped": skipped}
+
+def _send_medium_email(user, products):
+    try:
+        from django.template.loader import render_to_string
+        from django.core.mail import EmailMultiAlternatives
+        from decouple import config
+
+        SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')
+
+        subject = "Thank you for shopping with KAR Store 🙏"
+
+        html_content = render_to_string('emails/medium_retention_email.html', {
+            'user':     user,
+            'products': products,
+            'SITE_URL': SITE_URL,
+        })
+
+        email = EmailMultiAlternatives(
+            subject    = subject,
+            body       = f"Hi {user.username}, thank you for being with KAR Store!",
+            from_email = settings.DEFAULT_FROM_EMAIL,
+            to         = [user.email],
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)
+        return True
+
+    except Exception as e:
+        print(f"  Medium email failed for {user.username}: {e}")
         return False

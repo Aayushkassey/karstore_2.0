@@ -130,13 +130,13 @@ def _build_churn_payload(raw: dict) -> dict:
 def _get_risk_level(score: float) -> str:
     """
     Classify churn probability into risk buckets.
-    high   >= 0.75  → send retention email + show discount banner
-    medium >= 0.40  → show recommendations banner
-    low    <  0.40  → normal experience
+    high   >= 0.80  → send retention email + show discount banner
+    medium >= 0.55  → show recommendations banner
+    low    <  0.55  → normal experience
     """
-    if score >= 0.75:
+    if score >= 0.85:
         return "high"
-    elif score >= 0.45:
+    elif score >= 0.55:
         return "medium"
     else:
         return "low"
