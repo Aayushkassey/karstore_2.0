@@ -7,7 +7,17 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+:root {
+    --primary-orange: #f85606;
+    --primary-black: #000000;
+    --bg-light: #f4f4f6;
+    --text-main: #222222;
+    --text-muted: #666;
+    --white: #ffffff;
+    --border-soft: #efefef;
+    --transition: 0.3s ease;
+    --shadow-md: 0 10px 25px rgba(0,0,0,0.1);
+}
         body {
             background-color: #f4f7f6;
             margin: 0;
@@ -26,7 +36,7 @@
         /* टाइटल र स्किप बटनलाई एउटै लाइनमा मिलाउने */
         .header-row {
             display: flex;
-            justify-content: space-between; /* एउटा बायाँ, अर्को दायाँ */
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 15px;
@@ -41,18 +51,18 @@
 
         .btn-skip {
             padding: 8px 18px;
-            background-color: #f71b1b;
-            color: #252525;
+            background-color: var(--primary-orange);
+            color: #ffffff;
             text-decoration: none;
             border-radius: 8px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: bold;
             transition: all 0.3s ease;
-            border: 1px solid #e9ecef;
+            /* border: 1px solid #e9ecef; */
         }
 
         .btn-skip:hover {
-            background-color: #0080ff;
+            background-color: #ea4f02;
             color: #2d3436;
             transform: translateY(-1px);
         }
@@ -116,7 +126,7 @@
         }
 
         .btn-save:hover {
-            background-color: #6157e7;
+            background-color: var(--primary-orange);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,123,255,0.3);
         }
@@ -166,7 +176,6 @@
     
         if (checkboxes.length === 0) {
             e.preventDefault(); 
-            
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
