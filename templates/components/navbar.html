@@ -23,7 +23,7 @@
                     <a href="{% url 'cart_detail' %}" class="cart-link" style="text-decoration: none; color: inherit;">
                         🛒 Cart (<strong id="cart-count">{{ request.user.cart.items.count|default:0 }}</strong>)
                     </a>
-                    <a href="{% url 'whistles' %}" class="auth-link">Whistles</a>
+                    <a href="{% url 'whistles' %}" class="auth-link">Wishlist</a>
                 {% endif %}
                 
                 <div class="profile-dropdown">
