@@ -68,8 +68,8 @@
         <td class="product-cell">
           <div class="product-card">
             <div class="img-wrap">
-              {% if product.image %}
-                <img src="{{ SITE_URL }}{{ product.image.url }}" alt="{{ product.name }}">
+              {% if product.display_image %}
+                <img src="{{ product.display_image }}" alt="{{ product.name }}">
               {% elif product.image_url %}
                 <img src="{{ product.image_url }}" alt="{{ product.name }}">
               {% else %}
@@ -82,7 +82,7 @@
               {% if product.discount_percentage and product.discount_percentage > 0 %}
                 <div class="p-discount">{{ product.discount_percentage|floatformat:0 }}% OFF</div>
               {% endif %}
-              <a href="{{ SITE_URL }}/product/{{ product.id }}/" class="p-btn">View Product</a>
+              <a href="{{ SITE_URL }}" class="p-btn">View Product</a>
             </div>
           </div>
         </td>

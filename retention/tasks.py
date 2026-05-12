@@ -10,7 +10,7 @@ from ml_services.services.recsys import get_recommendations, get_popular_product
 import time
 import requests
 from retention.models import UserRecommendation, PopularProducts
-
+SITE_URL = "https://karstore.onrender.com"
 def wake_ml_api(max_wait=240, interval=15):
     """
     Ping ML API health endpoint until it wakes up.
@@ -277,7 +277,7 @@ def _send_retention_email(user, products, churn_probability, is_cold_start=False
         from retention.models import PopularProducts
         import random
 
-        SITE_URL = "https://karstore.onrender.com"
+        # SITE_URL = "https://karstore.onrender.com"
 
         subject = (
             "Welcome to KAR Store - Products picked for you! 🎁"
@@ -318,15 +318,12 @@ def _send_retention_email(user, products, churn_probability, is_cold_start=False
     
 # MEDIUM RISK EMAILS
 def send_medium_risk_emails():
-    """
-    Send appreciation + trending emails to medium risk users.
-    Max one email per user per 7 days.
-    """
     print(f"[{timezone.now()}] Starting medium risk email job...")
     seven_days_ago = timezone.now() - timezone.timedelta(days=7)
 
     from django.db.models import Max
 
+    # Get latest churn per user in one query
     latest_scores = (
         ChurnRecord.objects
         .exclude(user__email__endswith='@synthetic.karstore.com')
@@ -334,47 +331,43 @@ def send_medium_risk_emails():
         .annotate(latest=Max('scored_at'))
     )
 
+    # Get all recently emailed user IDs in one query
+    # recently_emailed_ids = set(
+    #     RetentionEmail.objects.filter(
+    #         sent_at__gte=seven_days_ago,
+    #         was_sent=True
+    #     ).exclude(
+    #         user__email__endswith='@synthetic.karstore.com'
+    #     ).values_list('user_id', flat=True)
+    # )
+
+    # Get all latest churn records in one query
+    latest_record_ids = [entry['latest'] for entry in latest_scores]
+    latest_records = {
+        r.user_id: r
+        for r in ChurnRecord.objects.filter(
+            scored_at__in=latest_record_ids,
+            risk_level='medium'
+        ).select_related('user__interests')
+    }
+
+    import random
+    pop_cache  = PopularProducts.objects.first()
+    pop_ids    = pop_cache.product_ids[4:20] if pop_cache else []
+
     sent    = 0
     skipped = 0
 
-    for entry in latest_scores:
-        record = ChurnRecord.objects.filter(
-            user_id   = entry['user'],
-            scored_at = entry['latest']
-        ).first()
-
-        if not record:
-            continue
-
-        if record.risk_level != 'medium':
-            skipped += 1
-            continue
-
-        user = record.user
-
-        if user.email.endswith('@synthetic.karstore.com'):
-            skipped += 1
-            continue
-
-        # recently_emailed = RetentionEmail.objects.filter(
-        #     user         = user,
-        #     sent_at__gte = seven_days_ago,
-        #     was_sent     = True
-        # ).exists()
-
-        # if recently_emailed:
+    for user_id, record in latest_records.items():
+        # if user_id in recently_emailed_ids:
         #     skipped += 1
         #     continue
 
-        # Get 3 random products from position 5-20 in popular list
-        import random
-        pop_cache  = PopularProducts.objects.first()
-        pop_ids    = pop_cache.product_ids[4:20] if pop_cache else []  # index 4-19 = position 5-20
-        random_ids = random.sample(pop_ids, min(3, len(pop_ids)))
+        user = record.user
 
-        products    = Product.objects.filter(
-            id__in  = random_ids,
-            stock__gt = 0
+        random_ids = random.sample(pop_ids, min(3, len(pop_ids)))
+        products   = Product.objects.filter(
+            id__in=random_ids, stock__gt=0
         )[:3]
 
         success = _send_medium_email(user, products)
@@ -399,8 +392,6 @@ def _send_medium_email(user, products):
         from django.template.loader import render_to_string
         from django.core.mail import EmailMultiAlternatives
         from decouple import config
-
-        SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')
 
         subject = "Thank you for shopping with KAR Store 🙏"
 
