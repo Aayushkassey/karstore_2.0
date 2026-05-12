@@ -97,7 +97,7 @@
         <div>
           <h6>High Risk Users</h6>
           <h2>{{ churn_high|default:0 }}</h2>
-          <small>Churn ≥ 75%</small>
+          <small>Churn ≥ 80%</small>
         </div>
       </div>
     </div>
@@ -111,7 +111,7 @@
         <div>
           <h6>Medium Risk Users</h6>
           <h2>{{ churn_medium|default:0 }}</h2>
-          <small>Churn 45–75%</small>
+          <small>Churn 55–80%</small>
         </div>
       </div>
     </div>
@@ -125,7 +125,7 @@
         <div>
           <h6>Low Risk Users</h6>
           <h2>{{ churn_low|default:0 }}</h2>
-          <small>Churn &lt; 45%</small>
+          <small>Churn &lt; 55%</small>
         </div>
       </div>
     </div>

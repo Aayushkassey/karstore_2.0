@@ -134,7 +134,7 @@ def _get_risk_level(score: float) -> str:
     medium >= 0.55  → show recommendations banner
     low    <  0.55  → normal experience
     """
-    if score >= 0.85:
+    if score >= 0.80:
         return "high"
     elif score >= 0.55:
         return "medium"
