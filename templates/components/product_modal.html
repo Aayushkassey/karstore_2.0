@@ -4,6 +4,10 @@
     #productModal {
         z-index: 100000 !important;
     }
+    /* SweetAlert को ब्याकग्राउन्ड र बक्सलाई मोडल भन्दा माथि ल्याउन */
+    .swal2-container {
+        z-index: 100001 !important;
+    }
 
     .modal-overlay {
         display: none;
@@ -280,24 +284,139 @@
     }
 
     @media (max-width: 768px) {
-        .modal-main-content {
-            flex-direction: column;
-        }
-
-        .modal-left {
-            border-right: none;
-            border-bottom: 1px solid #eee;
-        }
-
-        .modal-footer-features {
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .footer-item {
-            border-right: none;
-        }
+    /* ब्याकग्राउन्ड ब्लर र अलिकति स्पेस दिने */
+    .modal-overlay {
+        align-items: center !important;     /* बीचमा राख्ने */
+        justify-content: center !important;  /* बीचमा राख्ने */
+        padding: 15px !important;            /* स्क्रिनको ४ वटै कुनाबाट १५px स्पेस छाड्ने */
+        background: rgba(0, 0, 0, 0.6) !important; /* ब्याकग्राउन्ड अलि डार्क ताकि मोडल प्रस्ट चिनियोस् */
     }
+
+    /* मोडल बक्सलाई कार्ड आकार बनाउने */
+    .modal-box {
+        width: 100% !important;
+        max-width: 480px !important;        /* धेरै ठुलो हुन नदिने */
+        height: auto !important;            /* कन्टेन्ट अनुसार हाइट तलमाथि हुने */
+        max-height: 85vh !important;        /* स्क्रिनको ८५% भन्दा बढी हाइट नलिनु, बाँकी १५% ब्याकग्राउन्ड देखिन्छ */
+        border-radius: 16px !important;     /* कुनाहरू राम्रोसँग गोलो (Round) बनाउने */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    /* भित्रको कन्टेन्ट एरिया - यसलाई मात्र स्क्रोल गराउने */
+    .modal-main-content {
+        flex-direction: column !important;
+        overflow-y: auto !important;        /* धेरै लामो विवरण भए बक्स भित्रै स्क्रोल हुन्छ */
+        display: block !important;
+        padding-bottom: 20px !important;    /* तल अलिकति स्पेस */
+    }
+
+    /* इमेज सेक्सन */
+    .modal-left {
+        flex: none !important;
+        width: 100% !important;
+        height: 250px !important;           /* मोबाइल कार्डका लागि ठिक्कको इमेज हाइट */
+        padding: 25px 15px 10px 15px !important;
+        background: #fff !important;
+        border-right: none !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+    }
+
+    .modal-left img {
+        max-height: 100% !important;
+        width: auto !important;
+        object-fit: contain !important;
+    }
+
+    /* क्लोज बटन बक्सको भित्र टप-राइटमा सेफ राख्ने */
+    .modal-close-btn {
+        top: 12px !important;
+        right: 12px !important;
+        background: rgba(0, 0, 0, 0.05) !important;
+        color: #333 !important;
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 18px !important;
+        padding-bottom: 2px !important;
+        z-index: 100001 !important;
+    }
+
+    .modal-wishlist {
+        top: 12px !important;
+        left: 12px !important;
+        right: auto !important;
+    }
+
+    /* राइट सेक्सन (विवरणहरू) */
+    .modal-right {
+        padding: 15px !important;
+        background: #fff !important;
+    }
+
+    .modal-right h2 {
+        font-size: 18px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .modal-dprice {
+        font-size: 22px !important;
+    }
+
+    .modal-info-grid {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+        padding: 10px !important;
+    }
+
+    /* २×२ को फिचर ग्रिड मोबाइल कार्ड भित्र अट्ने गरी */
+    .modal-footer-features {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 12px !important;
+        background: #fafafa !important;
+        margin-top: 12px !important;
+        border-top: 1px solid #eee !important;
+    }
+
+    .footer-item {
+        border-right: none !important;
+        font-size: 11px !important;
+    }
+
+    /* बटनहरू बक्सको तल फिक्स बस्ने (स्क्रिनको तल होइन, मोडल बक्सकै फेदमा) */
+    .modal-btn-row {
+        position: sticky !important;       /* बक्सकै फेदमा टाँसिने */
+        bottom: 0 !important;
+        background: #fff !important;
+        padding: 12px 15px !important;
+        border-top: 1px solid #f0f0f0 !important;
+        margin-top: auto !important;
+        display: flex !important;
+        gap: 8px !important;
+        z-index: 999 !important;
+    }
+
+    .btn-add-cart, .btn-buy-now {
+        flex: 1 !important;
+        padding: 10px !important;
+        font-size: 12px !important;
+        border-radius: 6px !important;
+        height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
 </style>
 
 <div id="productModal" class="modal-overlay">
@@ -545,6 +664,17 @@
             return;
         }
 
+        const userRole = "{{ request.user.role }}";
+        if (userRole !== "CUSTOMER") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Action Denied 🚫',
+                text: 'Sellers, Admins, and Staff are not allowed to add products to cart! Please use a Customer Account.',
+                confirmButtonColor: '#f85606'
+            });
+            return;
+        }
+
         let qty = document.getElementById('modalQty').value; // मोडलको भ्यालु तान्ने
 
         fetch(`/orders/add-to-cart/${currentModalProductId}/`, {
@@ -569,6 +699,17 @@
     function buyNowFromModal(e) {
     if (e) e.stopPropagation();
     if (!currentModalProductId) return;
+
+    const userRole = "{{ request.user.role }}";
+        if (userRole !== "CUSTOMER") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Action Denied 🚫',
+                text: 'Sellers, Admins, and Staff are not allowed to buy products! Please use a Customer Account.',
+                confirmButtonColor: '#f85606'
+            });
+            return;
+        }
 
     let qty = parseInt(document.getElementById('modalQty').value) || 1;
     let total = baseDiscountedPrice * qty;

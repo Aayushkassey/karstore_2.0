@@ -6,6 +6,7 @@
                 <img src="{% static 'image/logo.png' %}" alt="KAR Store" class="main-brand-logo">
             </a>
         </div>
+
         {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'password_reset' and request.resolver_match.url_name != 'password_reset_done' and request.resolver_match.url_name != 'password_reset_complete' and request.resolver_match.url_name != 'password_reset_confirm' and request.resolver_match.url_name != 'select_interest' and request.resolver_match.url_name != 'edit_product' and request.resolver_match.url_name != 'add_product' %}
         <div class="nav-search">
             <form method="GET" action="{% url 'home' %}">
@@ -17,9 +18,9 @@
         </div>
         {% endif %}
 
-        <div class="nav-utilities">
+        <div class="nav-utilities desktop-only">
             {% if user.is_authenticated %}
-                {% if user.role == 'CUSTOMER' and not user.is_staff and not user.role == 'SELLER' %}
+                {% if user.role == 'CUSTOMER' and not user.is_staff %}
                     <a href="{% url 'cart_detail' %}" class="cart-link" style="text-decoration: none; color: inherit;">
                         🛒 Cart (<strong id="cart-count">{{ request.user.cart.items.count|default:0 }}</strong>)
                     </a>
@@ -36,7 +37,10 @@
                         {% if user.role == 'SELLER' %}
                         <li><a href="{% url 'dashboard' %}" style="color:#f85606; font-weight: bold; padding: 8px 15px; display: block; text-decoration: none;">Seller Dashboard</a></li>
                         {% endif %}
+                        
+                        {% if user.role == 'CUSTOMER' and not user.is_staff %}
                         <li><a href="{% url 'orders' %}" style="padding: 8px 15px; display: block; text-decoration: none;">Orders</a></li>
+                        {% endif %}
                         <hr>
                         <li><a href="{% url 'account:view_profile' %}" style="padding: 8px 15px; display: block; text-decoration: none; color: #333;">Your Profile</a></li>
                         <hr>
@@ -48,7 +52,36 @@
                 <a href="{% url 'register' %}" class="auth-link">Register</a>
             {% endif %}
         </div>
+
+        <div class="menu-toggle" onclick="toggleMobileMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
     </header>
+
+    <div class="mobile-menu-panel" id="mobileMenuPanel">
+        <div class="mobile-menu-content">
+            {% if user.is_authenticated %}
+                <div class="mobile-user-box">Hi, {{ user.username }}</div>
+                {% if user.role == 'SELLER' %}
+                    <a href="{% url 'dashboard' %}" class="mobile-menu-item" style="color: var(--primary-orange);">Dashboard</a>
+                {% endif %}
+                
+                {% if user.role == 'CUSTOMER' and not user.is_staff %}
+                    <a href="{% url 'orders' %}" class="mobile-menu-item"> Orders</a>
+                    <a href="{% url 'cart_detail' %}" class="mobile-menu-item">🛒 My Cart (<strong id="cart-count">{{ request.user.cart.items.count|default:0 }}</strong>)</a>
+                    <a href="{% url 'whistles' %}" class="mobile-menu-item"> Wishlist</a>
+                {% endif %}
+                
+                <a href="{% url 'account:view_profile' %}" class="mobile-menu-item"> Profile</a>
+                <a href="{% url 'logout' %}" class="mobile-menu-item" style="color: red;">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="mobile-btn login-btn">Sign In</a>
+                <a href="{% url 'register' %}" class="mobile-btn register-btn">Register</a>
+            {% endif %}
+        </div>
+    </div>
 
     {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'register' and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'password_reset' and request.resolver_match.url_name != 'password_reset_done' and request.resolver_match.url_name != 'password_reset_complete' and request.resolver_match.url_name != 'password_reset_confirm' and request.resolver_match.url_name != 'select_interest' and request.resolver_match.url_name != 'edit_product' and request.resolver_match.url_name != 'add_product' %}
     <nav class="category-strip">
@@ -61,49 +94,10 @@
                     {% for cat in categories %}
                     <li class="cat-item">
                         <a href="{% url 'category_products' cat.id %}" class="cat-link">{{ cat.name }}</a>
-                        
-                        <div class="mega-products-dropdown">
-                            <div class="mega-inner-content">
-                                
-                                <div class="mega-sidebar">
-                                    <p class="mega-title">Available Brands</p>
-                                    <ul class="brand-list">
-                                        {% for brand in cat.unique_brands %}
-                                            <li><a href="{% url 'category_products' cat.id %}?q={{ brand }}">{{ brand }}</a></li>
-                                        {% empty %}
-                                            <li><a href="#">Exclusive Store</a></li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-
-                                <div class="mega-main-grid">
-                                    <p class="mega-title">Trending in {{ cat.name }}</p>
-                                    <div class="mini-product-grid">
-                                        {% for product in cat.prefetched_products|slice:":4" %}
-                                            <div class="mini-card">
-                                                <div class="mini-img">
-                                                    <img src="{% if product.image_url %}{{ product.image_url }}{% elif product.image %}{{ product.image.url }}{% else %}{% static 'image/default.png' %}{% endif %}" 
-                                                        alt="{{ product.name }}">
-                                                </div>
-                                                <div class="mini-info">
-                                                    <h6>{{ product.name|truncatechars:18 }}</h6>
-                                                    <span class="mini-price">Rs. {{ product.price|floatformat:0 }}</span>
-                                                </div>
-                                            </div>
-                                        {% empty %}
-                                            <p style="font-size: 12px; color: #999;">New arrivals coming soon!</p>
-                                        {% endfor %}
-                                    </div>
-                                    <a href="{% url 'category_products' cat.id %}" class="see-more">Explore All {{ cat.name }} Items →</a>
-                                </div>
-
-                            </div>
-                        </div>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
-            
             <div class="nav-addon-info">
                 <span style="color: #ffffff; font-weight: 700; font-size: 14px; white-space: nowrap; border-left:3px solid var(--primary-orange); padding-left: 10px;"> FLASH SALE</span>
             </div>
@@ -115,8 +109,15 @@
 <script>
     function toggleUserDropdown() {
         const menu = document.getElementById("userMenu");
-        if (menu) {
-            menu.classList.toggle("show-dropdown");
+        if (menu) menu.classList.toggle("show-dropdown");
+    }
+
+    function toggleMobileMenu() {
+        const panel = document.getElementById("mobileMenuPanel");
+        const toggleBtn = document.querySelector(".menu-toggle");
+        if (panel && toggleBtn) {
+            panel.classList.toggle("active-panel");
+            toggleBtn.classList.toggle("open");
         }
     }
 

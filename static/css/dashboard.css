@@ -13,8 +13,10 @@ body {
     max-width: 1200px !important;
     margin: 40px auto !important;
     padding: 0 20px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    overflow: hidden !important; /* यसले कुनै पनि भत्किएको एलिमेन्टलाई स्क्रिन बाहिर धकेल्न दिँदैन */
 }
-
 /* ===== Header & Welcome Section ===== */
 .dashboard-header h1 {
     font-size: 28px;
@@ -206,16 +208,42 @@ body {
 }
 
 /* ===== Responsive Design ===== */
+/* ===== Responsive Design (Replace the bottom section completely) ===== */
 @media (max-width: 768px) {
-    .dashboard-cards {
-        flex-direction: column;
-        align-items: center;
+    .dashboard-container {
+        margin: 20px auto !important;
+        padding: 0 10px !important;
     }
-    .dashboard-card {
-        width: 100%;
-        max-width: 320px;
-    }
+
     .table-section {
-        padding: 15px;
+        padding: 15px !important;
+    }
+
+    /* 👑 टेबल र्‍यापर: यसले टेबललाई आफ्नै ठाउँमा मात्र स्क्रोल गराउँछ */
+    .table-responsive-wrapper {
+        width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 15px;
+    }
+
+    .styled-table {
+        width: 100% !important;
+        min-width: 700px !important; /* टेबललाई भित्रभित्रै पर्याप्त चौडाइ दिने */
+        border-collapse: collapse !important;
+    }
+
+    /* प्रडक्टको नामहरू नकाटियोस् भन्नका लागि पहिलो कोलम फिक्स */
+    .styled-table td:first-child, 
+    .styled-table th:first-child {
+        min-width: 160px !important;
+        white-space: normal !important; /* लामो नाम भए तल झर्छ तर काटिँदैन */
+    }
+
+    .styled-table th, 
+    .styled-table td {
+        padding: 10px 8px !important;
+        font-size: 13px !important;
     }
 }

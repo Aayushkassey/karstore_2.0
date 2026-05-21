@@ -368,24 +368,140 @@ body {
     }
 
 
-/* 6. MOBILE RESPONSIVENESS */
+
+    
+
+/* ३ लाइन मेनु बटनको डिफल्ट स्टाइल (कम्प्युटरमा लुक्छ) */
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 22px;
+    height: 16px;
+    cursor: pointer;
+}
+.menu-toggle span {
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-main);
+    transition: 0.3s ease;
+}
+.mobile-menu-panel { display: none; }
+
+/* ==========================================================================
+   6. MOBILE RESPONSIVENESS (LOGO | SEARCH | HAMBURGER IN ONE ROW)
+   ========================================================================== */
 @media (max-width: 768px) {
-    .top-header { flex-direction: column; gap: 10px; padding: 10px; }
-    .nav-logo img { height: 35px !important; }
-    .nav-search { margin: 10px 0; width: 100%; }
-    .nav-utilities { width: 100%; justify-content: center; gap: 15px; }
-    
-    .category-strip { display: block; overflow-x: auto; } /* Mobile ma Mega Menu j्याउ हुन्छ */
-    .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    
-    .suggestion-container {
-        position: fixed;
-        top: 60px;
-        left: 10px;
-        right: 10px;
-        width: calc(100% - 20px);
-        max-height: 50vh;
-        z-index: 99999;
+    /* १. कम्प्युटरको पुराना लिंकहरू मोबाइलमा लुकाउने */
+    .desktop-only { display: none !important; }
+
+    /* २. ३ लाइन बटन मोबाइलमा देखाउने */
+    .menu-toggle { display: flex !important; z-index: 1002; order: 3; }
+
+    /* ३ लाइन मेनु बटन क्लिक हुँदा 'X' आकार बन्ने एनिमेशन */
+    .menu-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+    .menu-toggle.open span:nth-child(2) { opacity: 0; }
+    .menu-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+
+    /* ३. हेडरलाई एउटै रोमा सिधा राख्ने र तल झर्न नदिने */
+    .top-header {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important; /* कुनै पनि एलिमेन्ट तल झर्न दिँदैन */
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 10px 12px !important;
+        gap: 10px !important; /* एलिमेन्टहरू बीचको दुरी */
     }
-    .suggestion-item { padding: 16px 20px; font-size: 15px; }
-}  
+
+    /* ४. बायाँ पट्टी लोगो (पहिलो स्थान) */
+    .nav-logo { 
+        order: 1; 
+        flex: 0 0 auto; 
+    }
+    .nav-logo img { 
+        height: 28px !important; /* मोबाइलमा लोगो हल्का सानो बनाएर स्पेस बचाएको */
+    }
+
+    /* ५. बीचमा सर्च बार (दोस्रो स्थान - बाँकी सबै ठाउँ ओगट्ने) */
+    .nav-search {
+        order: 2;
+        flex: 1 !important; /* यसले लोगो र मेनुको बीचको खाली ठाउँ पुरै भर्छ */
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    
+    .nav-search form { 
+        height: 36px; /* मोबाइल फ्रेन्डली स्लिम हाइट */
+        border-radius: 20px; /* दराजको जस्तै गोलो सर्च बार */
+        background: #f1f1f1; 
+    }
+    
+    .nav-search input { 
+        padding: 6px 12px !important; 
+        font-size: 12px; /* अक्षर थोरै सानो पारेको ताकि टाइप गर्दा मज्जाले अटोस */
+    }
+    
+    .nav-search button { 
+        padding: 0 12px !important; 
+        font-size: 13px; 
+    }
+
+    /* ६. मोबाइल मेनु प्यानल (Slider Panel) */
+    .mobile-menu-panel {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out;
+        z-index: 1001;
+        border-bottom: 2px solid var(--border-soft);
+    }
+    
+    .active-panel {
+        max-height: 350px !important; 
+    }
+
+    .mobile-menu-content { padding: 15px 20px; display: flex; flex-direction: column; gap: 5px; }
+    .mobile-user-box { font-weight: bold; padding: 10px 0; color: var(--text-main); border-bottom: 1px solid var(--border-soft); font-size: 14px; }
+    
+    .mobile-menu-item {
+        padding: 12px 0;
+        color: #333;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 550;
+        border-bottom: 1px solid #f9f9f9;
+    }
+
+    .mobile-btn {
+        display: block;
+        text-align: center;
+        padding: 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .login-btn { border: 1px solid var(--primary-orange); color: var(--primary-orange) !important; }
+    .register-btn { background: var(--primary-orange); color: var(--white) !important; }
+
+    /* ७. क्याटगोरी स्ट्रिप (दराज जस्तै स्क्रोल हुने) */
+    .category-strip { display: block !important; padding: 0 !important; }
+    .mega-menu-container { padding: 0 !important; justify-content: flex-start; }
+    .scroll-wrapper { overflow-x: auto !important; display: block !important; -webkit-overflow-scrolling: touch; }
+    .dynamic-category-list { display: flex !important; flex-direction: row !important; }
+    .cat-link { padding: 12px 15px !important; font-size: 12px !important; white-space: nowrap !important; }
+    .mega-products-dropdown { display: none !important; }
+
+    /* ८. २ कोलम प्रडक्ट ग्रिड र साना फन्टहरू */
+    .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    .img-wrapper img { height: 120px !important; }
+}
