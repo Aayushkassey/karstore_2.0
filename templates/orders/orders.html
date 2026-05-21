@@ -1,72 +1,161 @@
 {% extends 'pages/base.html' %}
 {% block content %}
+
+<style>
+    /* डेस्कटपमा टेबल देखाउने, मोबाइलमा कार्ड */
+    .order-desktop-table {
+        display: table !important;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .order-mobile-list {
+        display: none !important;
+    }
+
+    /* 📱 मोबाइल र ट्याब्लेटका लागि डिजाइन (७६८पिक्सेल वा सोभन्दा सानोमा) */
+    @media (max-width: 768px) {
+        .order-desktop-table {
+            display: none !important;
+        }
+        .order-mobile-list {
+            display: block !important;
+            padding: 15px;
+        }
+        .order-mobile-card {
+            background: #ffffff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 8px;
+        }
+        .order-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .order-card-action {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 5px;
+        }
+        /* माथिको टाइटल र लिङ्क मोबाइलमा मिलाउने */
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
+        }
+    }
+</style>
+
 <div class="main-container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="margin: 0; font-weight: 700; color: #333; border-left: 6px solid #f85606; padding-left: 15px;">
             My Order History
         </h2>
         <a href="{% url 'home' %}" style="text-decoration: none; color: #f85606; font-size: 14px; font-weight: 600;">
-            ← Continue Shopping
+            &larr; Continue Shopping
         </a>
     </div>
 
     <div style="background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #efefef;">
-        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-            <thead>
-                <tr style="background: #fafafa; border-bottom: 2px solid #f1f1f1; text-align: left;">
-                    <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
-                    <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Product Details</th>
-                    <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
-                    <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr style="border-bottom: 1px solid #f9f9f9; transition: background 0.2s;" onmouseover="this.style.background='#fffcfb'" onmouseout="this.style.background='white'">
-                    <td style="padding: 20px; color: #666; font-size: 14px;">{{ order.created_at|date:"M d, Y" }}</td>
-                    
-                    <td style="padding: 20px;">
-                        <div style="font-weight: 600; color: #222; font-size: 15px;">{{ order.product.name }}</div>
-                        <div style="color: #888; font-size: 13px; margin-top: 4px;">
-                            Qty: <span style="color: #444;">{{ order.quantity }}</span> | 
-                            Price: <span style="color: #444;">Rs. {{ order.product.price }}</span>
-                        </div>
-                    </td>
+        {% if orders %}
+            <table class="order-desktop-table">
+                <thead>
+                    <tr style="background: #fafafa; border-bottom: 2px solid #f1f1f1; text-align: left;">
+                        <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Date</th>
+                        <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Product Details</th>
+                        <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                        <th style="padding: 18px 20px; color: #555; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr style="border-bottom: 1px solid #f9f9f9; transition: background 0.2s;" onmouseover="this.style.background='#fffcfb'" onmouseout="this.style.background='white'">
+                        <td style="padding: 20px; color: #666; font-size: 14px;">{{ order.created_at|date:"M d, Y" }}</td>
+                        <td style="padding: 20px;">
+                            <div style="font-weight: 600; color: #222; font-size: 15px;">{{ order.product.name }}</div>
+                            <div style="color: #888; font-size: 13px; margin-top: 4px;">
+                                Qty: <span style="color: #444;">{{ order.quantity }}</span> | 
+                                Price: <span style="color: #444;">Rs. {{ order.product.price }}</span>
+                            </div>
+                        </td>
+                        <td style="padding: 20px;">
+                            <span style="display: inline-block; padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+                                {% if order.status == 'Completed' %} background: #e6fffa; color: #00b087;
+                                {% elif order.status == 'Pending' %} background: #fff9db; color: #f08c00;
+                                {% elif order.status == 'Cancelled' %} background: #fff5f5; color: #e53e3e;
+                                {% else %} background: #f1f3f5; color: #495057; {% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 20px; text-align: center;">
+                            <a href="{% url 'delete_order' order.id %}" style="background: #f85606; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.3s;" onmouseover="this.style.background='#d44a05'" onmouseout="this.style.background='#f85606'">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-                    <td style="padding: 20px;">
-                        <span style="display: inline-block; padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+            <div class="order-mobile-list">
+                {% for order in orders %}
+                <div class="order-mobile-card">
+                    <div class="order-card-header">
+                        <span style="color: #666; font-size: 13px; font-weight: 500;">{{ order.created_at|date:"M d, Y" }}</span>
+                        <span style="display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 10px; font-weight: 700; text-transform: uppercase;
                             {% if order.status == 'Completed' %} background: #e6fffa; color: #00b087;
                             {% elif order.status == 'Pending' %} background: #fff9db; color: #f08c00;
                             {% elif order.status == 'Cancelled' %} background: #fff5f5; color: #e53e3e;
                             {% else %} background: #f1f3f5; color: #495057; {% endif %}">
                             {{ order.status }}
                         </span>
-                    </td>
-
-                    <td style="padding: 20px; text-align: center;">
-                        <a href="{% url 'delete_order' order.id %}" style="background: #f85606; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.3s;" onmouseover="this.style.background='#d44a05'" onmouseout="this.style.background='#f85606'">
+                    </div>
+                    
+                    <div class="order-card-body">
+                        <div style="font-weight: 600; color: #222; font-size: 15px;">{{ order.product.name }}</div>
+                        <div style="color: #666; font-size: 13px; margin-top: 2px;">
+                            Quantity: <span style="font-weight: 600; color: #333;">{{ order.quantity }}</span>
+                        </div>
+                        <div style="color: #666; font-size: 13px;">
+                            Each Price: <span style="font-weight: 600; color: #333;">Rs. {{ order.product.price }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-card-action">
+                        <a href="{% url 'delete_order' order.id %}" style="background: #f85606; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">
                             Delete
                         </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="padding: 80px 20px; text-align: center;">
-                        <div style="font-size: 50px; margin-bottom: 20px;">🛒</div>
-                        <h3 style="color: #333; margin-bottom: 10px;">No orders found!</h3>
-                        <p style="color: #888; margin-bottom: 25px;">You haven't placed any orders yet. Explore our products and start shopping.</p>
-                        <a href="{% url 'home' %}" style="display: inline-block; background: #f85606; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-                            Start Shopping
-                        </a>
-                    </td>
-                </tr>
+                    </div>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+
+        {% else %}
+            <div style="padding: 80px 20px; text-align: center;">
+                <div style="font-size: 50px; margin-bottom: 20px;">🛒</div>
+                <h3 style="color: #333; margin-bottom: 10px;">No orders found!</h3>
+                <p style="color: #888; margin-bottom: 25px; padding: 0 10px;">You haven't placed any orders yet. Explore our products and start shopping.</p>
+                <a href="{% url 'home' %}" style="display: inline-block; background: #f85606; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                    Start Shopping
+                </a>
+            </div>
+        {% endif %}
     </div>
 
-    <p style="text-align: center; color: #aaa; font-size: 12px; margin-top: 30px;">
+    <p style="text-align: center; color: #aaa; font-size: 12px; margin-top: 30px; padding: 0 10px;">
          All your transactions are secured via eSewa. For any issues, contact support.
     </p>
 </div>
