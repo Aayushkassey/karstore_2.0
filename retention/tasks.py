@@ -55,10 +55,11 @@ def precompute_all():
     score_all_users()
 
     # ── 2. RECOMMENDATIONS PER USER ───────────────────────────────────────
+# Correct:
     customers = CustomerUser.objects.filter(
         role='CUSTOMER',
         is_active=True
-    ).exclude(email__endswith='@synthetic.karstore.com')
+    ).exclude(email__endswith='@synthetic.karstore.com').prefetch_related('interests')
 
     pop_cache = PopularProducts.objects.first()
     pop_ids   = pop_cache.product_ids if pop_cache else []
@@ -134,7 +135,7 @@ def score_all_users():
     customers = CustomerUser.objects.filter(
         role='CUSTOMER',
         is_active=True
-    ).exclude(email__endswith='@synthetic.karstore.com')  # skip synthetic users
+    ).exclude(email__endswith='@synthetic.karstore.com').prefetch_related('interests')  # skip synthetic users
 
     scored   = 0
     failed   = 0
@@ -343,13 +344,29 @@ def send_medium_risk_emails():
 
     # Get all latest churn records in one query
     latest_record_ids = [entry['latest'] for entry in latest_scores]
+    # latest_records = {
+    #     r.user_id: r
+    #     for r in ChurnRecord.objects.filter(
+    #         scored_at__in=latest_record_ids,
+    #         risk_level='medium'
+    #     )
+    # }
     latest_records = {
         r.user_id: r
         for r in ChurnRecord.objects.filter(
             scored_at__in=latest_record_ids,
             risk_level='medium'
-        ).select_related('user__interests')
+        ).select_related('user').prefetch_related('user__interests')
     }
+
+    # latest_records = {
+    #     r.user_id: r
+    #     for r in ChurnRecord.objects.filter(
+    #         scored_at__in=latest_record_ids,
+    #         risk_level='medium'
+    #     ).select_related('user__interests')
+    # }
+
 
     import random
     pop_cache  = PopularProducts.objects.first()
