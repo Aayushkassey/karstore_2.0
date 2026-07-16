@@ -10,6 +10,9 @@
   <img src="https://img.shields.io/badge/Render-Deployed-purple?style=for-the-badge" />
 </p>
 
+
+# ⚠️ NOTICE
+**THE AUTOMATED RETRAINING HAS FAILED BECAUSE THE DATABASE WAS DROPPED FROM THE FREE HOSTING SERVICE. AS A RESULT, OUR RETRAINING MODEL CANNOT FETCH NEW DATA.**
 ---
 
 # Overview
