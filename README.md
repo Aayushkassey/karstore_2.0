@@ -11,8 +11,10 @@
 </p>
 
 
-# ⚠️ NOTICE
-**THE AUTOMATED RETRAINING HAS FAILED BECAUSE THE DATABASE WAS DROPPED FROM THE FREE HOSTING SERVICE. AS A RESULT, OUR RETRAINING MODEL CANNOT FETCH NEW DATA.**
+<p style="color:red;">
+NOTICE: The automated retraining has failed because the database was automatically dropped from the free hosting service. As a result, our retraining model cannot fetch new data.
+</p>
+
 ---
 
 # Overview
