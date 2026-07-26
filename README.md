@@ -328,7 +328,10 @@ This project is developed for educational and research purposes.
 ✅ Integrated Churn Prediction System  
 ✅ Personalized Retention Workflow  
 
----
+<p align="center"> <i> We recently discovered a **data leakage issue** in the churn prediction model (identified on **26th July**).  
+All other components and workflows are stable and can be used as reference for architecture and integration patterns.
+</i><p>
+
 
 <p align="center">
   Built with Django, FastAPI, XGBoost, LightFM, and PostgreSQL
